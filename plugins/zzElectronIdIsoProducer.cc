@@ -33,11 +33,13 @@ class zzElectronIdIsoProducer : public edm::EDProducer {
 
       edm::EDGetTokenT<edm::View<reco::GsfElectron>> electronsToken_;
       edm::EDGetTokenT<edm::ValueMap<float>> mvaIdValueMapToken_;
+      edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
 };
 
 zzElectronIdIsoProducer::zzElectronIdIsoProducer(const edm::ParameterSet& iConfig) :
   electronsToken_(consumes<edm::View<reco::GsfElectron>>(iConfig.getParameter<edm::InputTag>("electrons"))),
-  mvaIdValueMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("mvaIdValueMap")))
+  mvaIdValueMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("mvaIdValueMap"))),
+  vertexToken_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("primaryVertices")))
 {
    produces<edm::ValueMap<bool>>("electronZZIDLoose");
    produces<edm::ValueMap<bool>>("electronZZIDTight");
@@ -60,6 +62,10 @@ zzElectronIdIsoProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSet
    Handle<ValueMap<float>> mvaValues;
    iEvent.getByToken(mvaIdValueMapToken_, mvaValues);
 
+   Handle<reco::VertexCollection> vertices;
+   iEvent.getByToken(vertexToken_, vertices);
+   const auto& primaryVertex = vertices->at(0);
+
    std::vector<bool> idLooseValues(electrons->size());
    std::vector<bool> idTightValues(electrons->size());
    std::vector<bool> isoValues(electrons->size());
@@ -69,16 +75,33 @@ zzElectronIdIsoProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSet
       float BDT = (*mvaValues)[l];
       // https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsZZ4l2015#Electrons
       float pt = l->pt();
+      float eta = fabs(l->eta());
+      float dxy = l->gsfTrack()->dxy(primaryVertex.position());
+      float dz = l->gsfTrack()->dz(primaryVertex.position());
       float fSCeta = fabs(l->superCluster()->eta());
+
+      bool idL = (pt>7.) && (fabs(eta)<2.5) && fabs(dxy)<0.5 && fabs(dz)<1.;
+
       bool isBDT = (pt<=10 && ((fSCeta<0.8                  && BDT > -0.265) ||
                               (fSCeta>=0.8 && fSCeta<1.479 && BDT > -0.556) ||
                               (fSCeta>=1.479               && BDT > -0.551))) 
                 || (pt>10  && ((fSCeta<0.8                  && BDT > -0.072) ||
                               (fSCeta>=0.8 && fSCeta<1.479 && BDT > -0.286) || 
                               (fSCeta>=1.479               && BDT > -0.267)));
-      idLooseValues[i] = true;
-      idTightValues[i] = isBDT;
-      isoValues[i] = false;
+
+      float EffectiveArea = 0.;
+      if (eta >= 0.0 && eta < 0.8 ) EffectiveArea = 0.1830;
+      if (eta >= 0.8 && eta < 1.3 ) EffectiveArea = 0.1734;
+      if (eta >= 1.3 && eta < 2.0 ) EffectiveArea = 0.1077;
+      if (eta >= 2.0 && eta < 2.2 ) EffectiveArea = 0.1565;
+      if (eta >= 2.2) EffectiveArea = 0.2680;
+
+      // TODO: whatever this is
+      float pfRelCombIso = ( 1.*EffectiveArea ) / pt;
+
+      idLooseValues[i] = idL;
+      idTightValues[i] = idL && isBDT;
+      isoValues[i] = pfRelCombIso < 0.5;
    }
 
    // All this just to fill some value maps?!
