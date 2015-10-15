@@ -158,24 +158,26 @@ process.goodElectronsMeasureHLTEle23 = cms.EDProducer("PatElectronTriggerCandPro
                                                 isAND       = cms.bool(False)
                                                 )
 process.goodElectronsMeasureHLT += process.goodElectronsMeasureHLTEle23
-process.goodElectronsMeasureHLTEle17 = cms.EDProducer("PatElectronTriggerCandProducer",
-                                                filterNames = cms.vstring("hltEle17CaloIdLTrackIdLIsoVLTrackIsoFilter"),
-                                                inputs      = cms.InputTag("goodElectronsProbeMeasureHLT"),
-                                                bits        = cms.InputTag('TriggerResults::HLT'),
-                                                objects     = cms.InputTag('selectedPatTrigger'),
-                                                dR          = cms.double(0.3),
-                                                isAND       = cms.bool(False)
-                                                )
+
+process.goodElectronsMeasureHLTEle17 = process.goodElectronsMeasureHLTEle23.clone()
+process.goodElectronsMeasureHLTEle17.filterNames = cms.vstring("hltEle17CaloIdLTrackIdLIsoVLTrackIsoFilter")
 process.goodElectronsMeasureHLT += process.goodElectronsMeasureHLTEle17
-process.goodElectronsMeasureHLTEle12 = cms.EDProducer("PatElectronTriggerCandProducer",
-                                                filterNames = cms.vstring("hltEle12CaloIdLTrackIdLIsoVLTrackIsoFilter"),
-                                                inputs      = cms.InputTag("goodElectronsProbeMeasureHLT"),
-                                                bits        = cms.InputTag('TriggerResults::HLT'),
-                                                objects     = cms.InputTag('selectedPatTrigger'),
-                                                dR          = cms.double(0.3),
-                                                isAND       = cms.bool(False)
-                                                )
+
+process.goodElectronsMeasureHLTEle12 = process.goodElectronsMeasureHLTEle23.clone()
+process.goodElectronsMeasureHLTEle12.filterNames = cms.vstring("hltEle12CaloIdLTrackIdLIsoVLTrackIsoFilter")
 process.goodElectronsMeasureHLT += process.goodElectronsMeasureHLTEle12
+
+process.goodElectronsMeasureHLTEle17Ele12Leg1 = process.goodElectronsMeasureHLTEle23.clone()
+process.goodElectronsMeasureHLTEle17Ele12Leg1.filterNames = cms.vstring("hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg1Filter")
+process.goodElectronsMeasureHLT += process.goodElectronsMeasureHLTEle17Ele12Leg1
+
+process.goodElectronsMeasureHLTEle17Ele12Leg2 = process.goodElectronsMeasureHLTEle23.clone()
+process.goodElectronsMeasureHLTEle17Ele12Leg2.filterNames = cms.vstring("hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg2Filter")
+process.goodElectronsMeasureHLT += process.goodElectronsMeasureHLTEle17Ele12Leg2
+
+process.goodElectronsMeasureHLTMu17Ele12ELeg = process.goodElectronsMeasureHLTEle23.clone()
+process.goodElectronsMeasureHLTMu17Ele12ELeg.filterNames = cms.vstring("hltMu17TrkIsoVVLEle12CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter")
+process.goodElectronsMeasureHLT += process.goodElectronsMeasureHLTMu17Ele12ELeg
 
 process.goodSuperClustersHLT = cms.EDProducer("RecoEcalCandidateTriggerCandProducer",
                                               filterNames  = cms.vstring(options['TnPHLTProbeFilters']),
@@ -387,7 +389,9 @@ for idmod in my_id_modules:
 
 process.electronZZIDIsoValueMaps = cms.EDProducer("zzElectronIdIsoProducer",
         electrons = cms.InputTag(options['ELECTRON_COLL']),
-        mvaIdValueMap = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values")
+        mvaIdValueMap = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values"),
+        primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
+        rho = cms.InputTag("fixedGridRhoFastjetAll")
         )
 
 process.goodElectronsPROBECutBasedVeto = cms.EDProducer("PatElectronSelectorByValueMap",
@@ -491,7 +495,10 @@ process.GsfElectronToTrigger = cms.EDAnalyzer("TagProbeFitTreeProducer",
                                               flags         = cms.PSet(
                                                   passingHLTEle23    = cms.InputTag("goodElectronsMeasureHLTEle23"),
                                                   passingHLTEle17    = cms.InputTag("goodElectronsMeasureHLTEle17"),
-                                                  passingHLTEle12    = cms.InputTag("goodElectronsMeasureHLTEle12")
+                                                  passingHLTEle12    = cms.InputTag("goodElectronsMeasureHLTEle12"),
+                                                  passingHLTEle17Ele12Leg1    = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg1"),
+                                                  passingHLTEle17Ele12Leg2    = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg2"),
+                                                  passingHLTMu17Ele12ELeg     = cms.InputTag("goodElectronsMeasureHLTMu17Ele12ELeg"),
                                               ),
                                               allProbes     = cms.InputTag("goodElectronsProbeMeasureHLT"),
                                               )

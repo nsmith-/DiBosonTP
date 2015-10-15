@@ -34,12 +34,14 @@ class zzElectronIdIsoProducer : public edm::EDProducer {
       edm::EDGetTokenT<edm::View<reco::GsfElectron>> electronsToken_;
       edm::EDGetTokenT<edm::ValueMap<float>> mvaIdValueMapToken_;
       edm::EDGetTokenT<reco::VertexCollection> vertexToken_;
+      edm::EDGetTokenT<double> rhoToken_;
 };
 
 zzElectronIdIsoProducer::zzElectronIdIsoProducer(const edm::ParameterSet& iConfig) :
   electronsToken_(consumes<edm::View<reco::GsfElectron>>(iConfig.getParameter<edm::InputTag>("electrons"))),
   mvaIdValueMapToken_(consumes<edm::ValueMap<float>>(iConfig.getParameter<edm::InputTag>("mvaIdValueMap"))),
-  vertexToken_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("primaryVertices")))
+  vertexToken_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("primaryVertices"))),
+  rhoToken_(consumes<double>(iConfig.getParameter<edm::InputTag>("rho")))
 {
    produces<edm::ValueMap<bool>>("electronZZIDLoose");
    produces<edm::ValueMap<bool>>("electronZZIDTight");
@@ -66,13 +68,20 @@ zzElectronIdIsoProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSet
    iEvent.getByToken(vertexToken_, vertices);
    const auto& primaryVertex = vertices->at(0);
 
+   Handle<double> rhoPtr;
+   iEvent.getByToken(rhoToken_, rhoPtr);
+   const double rho = *rhoPtr;
+
    std::vector<bool> idLooseValues(electrons->size());
    std::vector<bool> idTightValues(electrons->size());
    std::vector<bool> isoValues(electrons->size());
 
    for ( size_t i=0; i<electrons->size(); ++i ) {
-      auto l = electrons->ptrAt(i);
-      float BDT = (*mvaValues)[l];
+      auto l = dynamic_cast<const pat::Electron *>(&electrons->at(i));
+      if ( l == nullptr )
+        throw cms::Exception("Could not upcast to pat::Electron");
+
+      float BDT = (*mvaValues)[electrons->ptrAt(i)];
       // https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsZZ4l2015#Electrons
       float pt = l->pt();
       float eta = fabs(l->eta());
@@ -80,7 +89,7 @@ zzElectronIdIsoProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSet
       float dz = l->gsfTrack()->dz(primaryVertex.position());
       float fSCeta = fabs(l->superCluster()->eta());
 
-      bool idL = (pt>7.) && (fabs(eta)<2.5) && fabs(dxy)<0.5 && fabs(dz)<1.;
+      bool idL = (pt>10.) && (fabs(eta)<2.5) && fabs(dxy)<0.5 && fabs(dz)<1.;
 
       bool isBDT = (pt<=10 && ((fSCeta<0.8                  && BDT > -0.265) ||
                               (fSCeta>=0.8 && fSCeta<1.479 && BDT > -0.556) ||
@@ -96,8 +105,7 @@ zzElectronIdIsoProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSet
       if (eta >= 2.0 && eta < 2.2 ) EffectiveArea = 0.1565;
       if (eta >= 2.2) EffectiveArea = 0.2680;
 
-      // TODO: whatever this is
-      float pfRelCombIso = ( 1.*EffectiveArea ) / pt;
+      float pfRelCombIso = (l->chargedHadronIso() + std::max(0., l->neutralHadronIso() + l->photonIso() - EffectiveArea * rho)) / l->pt();
 
       idLooseValues[i] = idL;
       idTightValues[i] = idL && isBDT;
