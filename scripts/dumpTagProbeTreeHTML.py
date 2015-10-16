@@ -24,7 +24,7 @@ def get2DPlot(effDir) :
     canvas = None
     plotsDir = effDir.Get('fit_eff_plots')
     for key in plotsDir.GetListOfKeys() :
-        if re.match('probe_.*pt.*_probe_.*_PLOT.*', key.GetName()) :
+        if re.match('probe_.*abseta.*_probe_.*_PLOT.*', key.GetName()) :
             canvas = key.ReadObj()
             break
 
