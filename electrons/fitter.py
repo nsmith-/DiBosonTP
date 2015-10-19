@@ -91,9 +91,8 @@ EfficiencyBins = cms.PSet(
     )
 
 EfficiencyBinningSpecification = cms.PSet(
-    UnbinnedVariables = cms.vstring("mass", "totWeight", "Ele_dRTau", "probe_dRTau"),
-    BinnedVariables = cms.PSet(EfficiencyBins,
-    ),
+    UnbinnedVariables = cms.vstring("mass", "totWeight"),
+    BinnedVariables = cms.PSet(EfficiencyBins),
     BinToPDFmap = cms.vstring("pdfSignalPlusBackground")  
     )
 
@@ -117,16 +116,13 @@ process.TnPMeasurement = cms.EDAnalyzer("TagProbeFitTreeAnalyzer",
                                         floatShapeParameters = cms.bool(True),
                                         binnedFit = cms.bool(True),
                                         binsForFit = cms.uint32(60),
-                                        #WeightVariable = cms.string("totWeight"),
                                         #fixVars = cms.vstring("meanP", "meanF", "sigmaP", "sigmaF", "sigmaP_2", "sigmaF_2"),
                                         
                                         # defines all the real variables of the probes available in the input tree and intended for use in the efficiencies
                                         Variables = cms.PSet(mass = cms.vstring("Tag-Probe Mass", "60.0", "120.0", "GeV/c^{2}"),
                                                              probe_Ele_pt = cms.vstring("Probe p_{T}", "0", "1000", "GeV/c"),
                                                              probe_Ele_abseta = cms.vstring("Probe |#eta|", "0", "2.5", ""), 
-                                                             totWeight = cms.vstring("totWeight", "-1000000000", "100000000", ""),
-                                                             Ele_dRTau = cms.vstring("Ele_dRTau", "0.2", "100000", ""),
-                                                             probe_dRTau = cms.vstring("probe_dRTau", "0.2", "100000", ""),
+                                                             totWeight = cms.vstring("totWeight", "-100000000", "1000000000", ""),
                                                              ),
                                         
                                         # defines all the discrete variables of the probes available in the input tree and intended for use in the efficiency calculations
@@ -157,6 +153,7 @@ if len(options.conditions) > 0 :
     for condition in options.conditions :
         setattr(process.TnPMeasurement.Categories, condition, cms.vstring(condition, "dummy[true=1,false=0]"))
 
+# Actual efficiency pset
 effName = options.idName
 if options.isMC :
     effName += '_mcTrue'
@@ -170,6 +167,10 @@ setattr(process.TnPMeasurement.Efficiencies, effName, cms.PSet(
             EfficiencyCategoryAndState = cms.vstring(options.idName, "pass")
             )
        )
+
+# MC weight
+#if options.isMC :
+#    setattr(process.TnPMeasurement, 'WeightVariable', cms.string("totWeight"))
 
 # switch pdf settings
 

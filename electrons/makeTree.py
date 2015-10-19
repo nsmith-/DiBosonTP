@@ -516,7 +516,7 @@ if (not varOptions.isMC):
         )
 
 process.GsfElectronToTrigger = cms.EDAnalyzer("TagProbeFitTreeProducer",
-                                              CommonStuffForSuperClusterProbe, mcTruthCommonStuff,
+                                              CommonStuffForGsfElectronProbe, mcTruthCommonStuff,
                                               tagProbePairs = cms.InputTag("tagTightHLT"),
                                               arbitration   = cms.string("Random2"),
                                               flags         = cms.PSet(

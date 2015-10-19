@@ -170,7 +170,7 @@ def main() :
         stack.SetMinimum(0)
         stack.SetMaximum(1.05)
         stack.Draw('nostack')
-        leg = canvas.BuildLegend(.2,.2,.6,.4)
+        leg = canvas.BuildLegend(.5,.2,.9,.4)
         leg.SetHeader(data.GetName())
         canvas.Update()
         canvas.Print(os.path.join(args.output, data.GetName()+'.png'))
