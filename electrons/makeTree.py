@@ -29,6 +29,7 @@ options['DORECO']                  = cms.bool(True)
 options['DOID']                    = cms.bool(True)
 options['OUTPUTEDMFILENAME']       = 'edmFile.root'
 options['DEBUG']                   = cms.bool(False)
+options['json']                    = 'Cert_246908-258714_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
 
 # file dataset=/SingleElectron/Run2015D-05Oct2015-v1/MINIAOD
 # https://cmsweb.cern.ch/das/request?view=plain&limit=50&instance=prod%2Fglobal&input=file+dataset%3D%2FSingleElectron%2FRun2015D-05Oct2015-v1%2FMINIAOD
@@ -394,6 +395,10 @@ process.source = cms.Source("PoolSource",
                             )
 
 process.maxEvents = cms.untracked.PSet( input = options['MAXEVENTS'])
+
+if not varOptions.isMC :
+    import FWCore.PythonUtilities.LumiList as LumiList
+    process.source.lumisToProcess = LumiList.LumiList(filename = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/'+options['json']).getVLuminosityBlockRange()
 
 ###################################################################
 ## ID
