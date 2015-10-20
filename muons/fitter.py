@@ -86,8 +86,8 @@ else:
 ################################################
 
 EfficiencyBins = cms.PSet(
-    probe_Ele_pt  = cms.vdouble( 10, 20, 30, 40, 50, 100, 1000 ),
-    probe_Ele_abseta = cms.vdouble( 0.0, 1.5, 2.5), 
+    probe_pt  = cms.vdouble( 10, 20, 30, 40, 50, 100, 1000 ),
+    probe_abseta = cms.vdouble( 0.0, 1.5, 2.5), 
     )
 
 EfficiencyBinningSpecification = cms.PSet(
