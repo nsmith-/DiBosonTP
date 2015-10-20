@@ -9,6 +9,7 @@ ROOT.AutoLibraryLoader.enable()
 from DataFormats.FWLite import Handle, Events
 
 genParticles = Handle("std::vector<reco::GenParticle>")
+genWeights = Handle("GenEventInfoProduct")
 
 events = Events(sys.argv[1])
 
@@ -19,6 +20,7 @@ for iev,event in enumerate(events):
     if iev%1000 == 0 :
         print "Done with %d events" % iev
     event.getByLabel('prunedGenParticles', genParticles)
+    event.getByLabel('generator', genWeights)
     zmms = []
     for p in genParticles.product() :
         if not p.mother() :
@@ -26,8 +28,12 @@ for iev,event in enumerate(events):
         if abs(p.pdgId()) == 13 and p.isPromptFinalState() :
             zmms.append(p)
 
+    w = -1.
+    if genWeights.product().weight() > 0 :
+        w = 1.
+
     if len(zmms) == 2 :
-        hGen.Fill((zmms[0].p4()+zmms[1].p4()).mass())
+        hGen.Fill((zmms[0].p4()+zmms[1].p4()).mass(), w)
 
 outFile.cd()
 hGen.Write()
