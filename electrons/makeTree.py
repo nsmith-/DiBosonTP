@@ -93,7 +93,9 @@ process.hltFilter.throw = cms.bool(True)
 process.hltFilter.HLTPaths = options['TnPPATHS']
 
 process.pileupReweightingProducer = cms.EDProducer("PileupWeightProducer",
-                                                   hardcodedWeights = cms.untracked.bool(True)
+    hardcodedWeights = cms.untracked.bool(False),
+    PileupMCFile = cms.string('../data/puWeightMC.root'),
+    PileupDataFile = cms.string('../data/puWeightData.root'),
                                                    )
 
 process.GsfDRToNearestTauProbe = cms.EDProducer("DeltaRNearestGenPComputer",
