@@ -29,7 +29,7 @@ options['DORECO']                  = cms.bool(True)
 options['DOID']                    = cms.bool(True)
 options['OUTPUTEDMFILENAME']       = 'edmFile.root'
 options['DEBUG']                   = cms.bool(False)
-options['json']                    = 'Cert_246908-258714_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+options['json']                    = 'Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
 
 # file dataset=/SingleElectron/Run2015D-05Oct2015-v1/MINIAOD
 # https://cmsweb.cern.ch/das/request?view=plain&limit=50&instance=prod%2Fglobal&input=file+dataset%3D%2FSingleElectron%2FRun2015D-05Oct2015-v1%2FMINIAOD
@@ -37,15 +37,6 @@ inputFilesData = [
         '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/00991D45-4E6F-E511-932C-0025905A48F2.root',
         '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/020243DA-326F-E511-8953-0026189438B1.root',
         '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/02D29CFD-2B6F-E511-AD72-00261894385A.root',
-        '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/0423304A-3F6F-E511-9875-0025905A609E.root',
-        '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/04878A45-4E6F-E511-B730-0025905964CC.root',
-        '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/04881512-4B6F-E511-96AF-00261894380B.root',
-        '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/0497D7BE-406F-E511-BC00-0025905B8582.root',
-        '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/064382F4-256F-E511-9B82-0025905A60D0.root',
-        '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/064D1340-4E6F-E511-A0A6-002354EF3BE0.root',
-        '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/068CA0BD-406F-E511-9DBE-0025905A6122.root',
-        '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/06FAAB9D-3C6F-E511-8EED-0025905B861C.root',
-        '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/0A12CF18-4B6F-E511-B461-0025905A612A.root',
 ]
 
 # file dataset=/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM
@@ -54,21 +45,27 @@ inputFilesMC = [
         '/store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v3/10000/009D49A5-7314-E511-84EF-0025905A605E.root',
         '/store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v3/10000/00C0BECF-6F14-E511-96F8-0025904B739A.root',
         '/store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v3/10000/0260F225-7614-E511-A79F-00A0D1EE8EB4.root',
-        '/store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v3/10000/02B810EA-7214-E511-BDAB-0025905964C2.root',
-        '/store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v3/10000/02CEA7DD-7714-E511-A93E-00266CFAEA68.root',
 ]
 
+if len(varOptions.inputFiles) is 0 :
+    if varOptions.isMC :
+        varOptions.inputFiles = inputFilesMC
+    else :
+        varOptions.inputFiles = inputFilesData
+
+if len(varOptions.outputFile) is 0 :
+    if varOptions.isMC :
+        varOptions.outputFile = 'TnPTree_mc.root'
+    else :
+        varOptions.outputFile = 'TnPTree_data.root'
+
 if (varOptions.isMC):
-    options['INPUT_FILE_NAME']     = inputFilesMC
-    options['OUTPUT_FILE_NAME']    = "TnPTree_mc.root"
     options['TnPPATHS']            = cms.vstring("HLT_Ele22_eta2p1_WP75_Gsf_v*")
     options['TnPHLTTagFilters']    = cms.vstring("hltSingleEle22WP75GsfTrackIsoFilter")
     options['TnPHLTProbeFilters']  = cms.vstring()
     options['GLOBALTAG']           = 'MCRUN2_74_V9A'
     options['EVENTSToPROCESS']     = cms.untracked.VEventRange()
 else:
-    options['INPUT_FILE_NAME']     = inputFilesData
-    options['OUTPUT_FILE_NAME']    = "TnPTree_data.root"
     options['TnPPATHS']            = cms.vstring("HLT_Ele22_eta2p1_WPTight_Gsf_v*")
     options['TnPHLTTagFilters']    = cms.vstring("hltSingleEle22WPTightGsfTrackIsoFilter")
     options['TnPHLTProbeFilters']  = cms.vstring()
@@ -94,8 +91,8 @@ process.hltFilter.HLTPaths = options['TnPPATHS']
 
 process.pileupReweightingProducer = cms.EDProducer("PileupWeightProducer",
     hardcodedWeights = cms.untracked.bool(False),
-    PileupMCFile = cms.string('../data/puWeightMC.root'),
-    PileupDataFile = cms.string('../data/puWeightData.root'),
+    PileupMCFile = cms.string('$CMSSW_BASE/src/Analysis/DiBosonTP/data/puWeightMC.root'),
+    PileupDataFile = cms.string('$CMSSW_BASE/src/Analysis/DiBosonTP/data/puWeightData.root'),
                                                    )
 
 process.GsfDRToNearestTauProbe = cms.EDProducer("DeltaRNearestGenPComputer",
@@ -401,7 +398,7 @@ process.MessageLogger.cerr.threshold = ''
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 process.source = cms.Source("PoolSource",
-                            fileNames = cms.untracked.vstring(options['INPUT_FILE_NAME']),
+                            fileNames = cms.untracked.vstring(varOptions.inputFiles),
                             eventsToProcess = options['EVENTSToPROCESS']
                             )
 
@@ -642,6 +639,6 @@ else:
         )
 
 process.TFileService = cms.Service(
-    "TFileService", fileName = cms.string(options['OUTPUT_FILE_NAME']),
+    "TFileService", fileName = cms.string(varOptions.outputFile),
     closeFileFast = cms.untracked.bool(True)
     )
