@@ -13,6 +13,7 @@ cmsRun fitter.py isMC=1 inputFileName=TnPTree_mc.root idName=passingZZIso condit
 
 # MC Triggers
 cmsRun fitter.py isMC=1 inputFileName=TnPTree_mc.root dirName=GsfElectronToTrigger idName=passingHLTEle17Ele12Leg1 2>&1 > /dev/null &
+cmsRun fitter.py isMC=1 inputFileName=TnPTree_mc.root dirName=GsfElectronToTrigger idName=passingHLTEle17Ele12Leg1L1Match 2>&1 > /dev/null &
 cmsRun fitter.py isMC=1 inputFileName=TnPTree_mc.root dirName=GsfElectronToTrigger idName=passingHLTEle17Ele12Leg2 2>&1 > /dev/null &
 
 # Data ID/Iso
@@ -27,6 +28,7 @@ cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=passingZZIso cond
 
 # Data Triggers
 cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root dirName=GsfElectronToTrigger idName=passingHLTEle17Ele12Leg1 2>&1 > /dev/null &
+cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root dirName=GsfElectronToTrigger idName=passingHLTEle17Ele12Leg1L1Match 2>&1 > /dev/null &
 cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root dirName=GsfElectronToTrigger idName=passingHLTEle17Ele12Leg2 2>&1 > /dev/null &
 
 wait

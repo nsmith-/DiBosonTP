@@ -13,6 +13,7 @@ cmsRun fitter.py isMC=1 inputFileName=TnPTree_mc.root idName=passingIsoWZTight c
 
 # MC Triggers
 cmsRun fitter.py isMC=1 inputFileName=TnPTree_mc.root idName=passingMu17 2>&1 > /dev/null &
+cmsRun fitter.py isMC=1 inputFileName=TnPTree_mc.root idName=passingMu17L1Match 2>&1 > /dev/null &
 cmsRun fitter.py isMC=1 inputFileName=TnPTree_mc.root idName=passingMu8 2>&1 > /dev/null &
 cmsRun fitter.py isMC=1 inputFileName=TnPTree_mc.root idName=passingTkMu8 2>&1 > /dev/null &
 
@@ -28,6 +29,7 @@ cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=passingIsoWZTight
 
 # Data Triggers
 cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=passingMu17 2>&1 > /dev/null &
+cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=passingMu17L1Match 2>&1 > /dev/null &
 cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=passingMu8 2>&1 > /dev/null &
 cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=passingTkMu8 2>&1 > /dev/null &
 
