@@ -149,6 +149,14 @@ process.probeTriggersMu17Leg = cms.EDProducer("PatMuonTriggerCandProducer",
     )
 process.probeTriggerSeq += process.probeTriggersMu17Leg
 
+process.probeTriggersMu17LegL1Mu12 = cms.EDProducer("L1MuonMatcher",
+        inputs = cms.InputTag("probeTriggersMu17Leg"),
+        l1extraMuons = cms.InputTag("l1extraParticles"),
+        minET = cms.double(12.),
+        dRmatch = cms.double(.5)
+        )
+process.probeTriggerSeq += process.probeTriggersMu17LegL1Mu12
+
 process.probeTriggersMu8Leg = process.probeTriggersMu17Leg.clone()
 process.probeTriggersMu8Leg.filterNames = cms.vstring("hltDiMuonGlb17Glb8RelTrkIsoFiltered0p4", "hltL3pfL1sDoubleMu103p5L1f0L2pf0L3PreFiltered8")
 process.probeTriggerSeq += process.probeTriggersMu8Leg
@@ -256,6 +264,7 @@ process.muonEffs = cms.EDAnalyzer("TagProbeFitTreeProducer",
         passingIsoWZTight = cms.string(isolationDef+" < 0.12"),
 
         passingMu17 = cms.InputTag("probeTriggersMu17Leg"),
+        passingMu17L1Match = cms.InputTag("probeTriggersMu17LegL1Mu12"),
         passingMu8= cms.InputTag("probeTriggersMu8Leg"),
         passingTkMu8 = cms.InputTag("probeTriggersTkMu8Leg"),
     ),
