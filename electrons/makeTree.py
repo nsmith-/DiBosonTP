@@ -199,6 +199,15 @@ process.goodElectronsMeasureHLTEle17Ele12Leg1 = process.goodElectronsMeasureHLTE
 process.goodElectronsMeasureHLTEle17Ele12Leg1.filterNames = cms.vstring("hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg1Filter")
 process.goodElectronsMeasureHLT += process.goodElectronsMeasureHLTEle17Ele12Leg1
 
+process.goodElectronsMeasureHLTEle17Ele12Leg1L1EG15 = cms.EDProducer("PatElectronL1CandProducer",
+        inputs = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg1"),
+        isoObjects = cms.InputTag("l1extraParticles:Isolated"),
+        nonIsoObjects = cms.InputTag("l1extraParticles:NonIsolated"),
+        minET = cms.double(15.),
+        dRmatch = cms.double(.5)
+        )
+process.goodElectronsMeasureHLT += process.goodElectronsMeasureHLTEle17Ele12Leg1L1EG15
+
 process.goodElectronsMeasureHLTEle17Ele12Leg2 = process.goodElectronsMeasureHLTEle23.clone()
 process.goodElectronsMeasureHLTEle17Ele12Leg2.filterNames = cms.vstring("hltEle17Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg2Filter")
 process.goodElectronsMeasureHLT += process.goodElectronsMeasureHLTEle17Ele12Leg2
@@ -529,6 +538,7 @@ process.GsfElectronToTrigger = cms.EDAnalyzer("TagProbeFitTreeProducer",
                                                   passingHLTEle17    = cms.InputTag("goodElectronsMeasureHLTEle17"),
                                                   passingHLTEle12    = cms.InputTag("goodElectronsMeasureHLTEle12"),
                                                   passingHLTEle17Ele12Leg1    = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg1"),
+                                                  passingHLTEle17Ele12Leg1L1Match    = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg1L1EG15"),
                                                   passingHLTEle17Ele12Leg2    = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg2"),
                                                   passingHLTMu17Ele12ELeg     = cms.InputTag("goodElectronsMeasureHLTMu17Ele12ELeg"),
                                               ),
