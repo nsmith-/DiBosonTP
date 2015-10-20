@@ -31,6 +31,12 @@ cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=passingMu17 2>&1 
 cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=passingMu8 2>&1 > /dev/null &
 cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=passingTkMu8 2>&1 > /dev/null &
 
+# DZ Filter
+cmsRun fitter.py isMC=1 inputFileName=TnPTreeDZ_mc.root idName=passingDZ dirName=globalMuonDZTree  outputFileName=globalMuon  2>&1 > /dev/null &
+cmsRun fitter.py isMC=1 inputFileName=TnPTreeDZ_mc.root idName=passingDZ dirName=trackerMuonDZTree outputFileName=trackerMuon 2>&1 > /dev/null &
+cmsRun fitter.py isMC=0 inputFileName=TnPTreeDZ_data.root idName=passingDZ dirName=globalMuonDZTree  outputFileName=globalMuon  2>&1 > /dev/null &
+cmsRun fitter.py isMC=0 inputFileName=TnPTreeDZ_data.root idName=passingDZ dirName=trackerMuonDZTree outputFileName=trackerMuon 2>&1 > /dev/null &
+
 wait
 
 hadd -f efficiency-mc.root efficiency-mc-*.root
@@ -38,3 +44,9 @@ hadd -f efficiency-data.root efficiency-data-*.root
 
 dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ~/www/TagProbePlots/newmuons
 dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ~/www/TagProbePlots/newmuons
+
+dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i globalMuonDZTree -o ~/www/TagProbePlots/globalMuonDZ
+dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i globalMuonDZTree -o ~/www/TagProbePlots/globalMuonDZ
+
+dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i trackerMuonDZTree -o ~/www/TagProbePlots/trackerMuonDZ
+dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i trackerMuonDZTree -o ~/www/TagProbePlots/trackerMuonDZ
