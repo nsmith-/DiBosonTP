@@ -133,14 +133,14 @@ process.TnPMeasurement = cms.EDAnalyzer("TagProbeFitTreeAnalyzer",
                                         # each pdf needs to define "signal", "backgroundPass", "backgroundFail" pdfs, "efficiency[0.9,0,1]" 
                                         # and "signalFractionInPassing[0.9]" are used for initial values  
                                         PDFs = cms.PSet(pdfSignalPlusBackground = cms.vstring(
-            "RooCBExGaussShape::signalResPass(mass,meanP[-0.0,-5.000,5.000],sigmaP[0.956,0.00,15.000],alphaP[0.999, 0.0,50.0],nP[1.405,0.000,50.000],sigmaP_2[1.000,0.500,15.00])",
-            "RooCBExGaussShape::signalResFail(mass,meanF[-0.0,-5.000,5.000],sigmaF[3.331,0.00,15.000],alphaF[1.586, 0.0,50.0],nF[0.464,0.000,20.00], sigmaF_2[1.675,0.500,12.000])",
+            "RooCBExGaussShape::signalResPass(mass,meanP[0.0,-5.000,5.000],sigmaP[0.97,0.00,15.000],alphaP[1.1, 0.0,50.0],nP[3.5,0.000,50.00],sigmaP_2[1.6,0.500,15.00])",
+            "RooCBExGaussShape::signalResFail(mass,meanF[0.0,-5.000,5.000],sigmaF[2.97,0.00,15.000],alphaF[8.0, 0.0,50.0],nF[15.,0.000,20.00],sigmaF_2[2.0,0.500,12.00])",
             "ZGeneratorLineShape::signalPhy(mass, \"../data/ZmmGenLevel.root\")", 
-            "RooCMSShape::backgroundPass(mass, alphaPass[60.,50.,70.], betaPass[0.001, 0.,0.1], gammaPass[0.1, 0, 1], peakPass[90.0])",
-            "RooCMSShape::backgroundFail(mass, alphaFail[60.,50.,70.], betaFail[0.001, 0.,0.1], gammaFail[0.1, 0, 1], peakFail[90.0])",
+            "RooCMSShape::backgroundPass(mass, alphaPass[70.], betaPass[0.02, 0.,0.1], gammaPass[0.1, 0, 1], peakPass[90.0])",
+            "RooCMSShape::backgroundFail(mass, alphaFail[70.], betaFail[0.02, 0.,0.1], gammaFail[0.1, 0, 1], peakFail[90.0])",
             "FCONV::signalPass(mass, signalPhy, signalResPass)",
             "FCONV::signalFail(mass, signalPhy, signalResFail)",     
-            "efficiency[0.5,0,1]",
+            "efficiency[0.9,0,1]",
             "signalFractionInPassing[1.0]"     
             ),
                                                         ),
