@@ -119,15 +119,22 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
     canvas = effBinDir.Get('fit_canvas')
     canvas.Print(os.path.join(outputDirectory, effBinDir.GetName()+'.png'))
 
+    with open(os.path.join(outputDirectory, effBinDir.GetName()+'.parameters.txt'), 'w') as paramOut :
+        params = fitResults.floatParsFinal()
+        for p in xrange(params.getSize()):
+            myPar = params.at(p)
+            paramOut.write("%s[%.3f,%.3f,%.3f]\n"%(myPar.GetName(), myPar.getVal(), myPar.getMin(), myPar.getMax()))
+
     passing = canvas.FindObject('fit_canvas_1')
     (chi2, dof) = makeChi2(passing, fitResults.floatParsFinal().getSize())
     (chi2roo, dofroo) = makeChi2_roofit(passing, fitResults.floatParsFinal().getSize())
 
-    def htmlColor(r,g,b) :
-        return '#%2X%2X%2X' % (r,g,b)
-
-    metric = 1./(1+chi2/dof) if chi2 > dof else 1
-    fitStatusColor = htmlColor( (255-80)*(1-metric)+80, (255-80)*metric+80, 80)
+    colors = ['#79ff00', '#ffff00', '#ff7700', '#ff0000']
+    thresholds = [1., 5., 10., 100.]
+    fitStatusColor = '#00ff00' 
+    for i in range(4) :
+        if chi2/dof > thresholds[i] :
+            fitStatusColor = colors[i]
 
     binName = effBinDir.GetName()
 
@@ -140,7 +147,7 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
             numSignalAll=fitResults.floatParsFinal().find('numSignalAll').getVal(),
             chi2='%.0f / %d' % (chi2, dof),
             chi2roo='%.0f / %d' % (chi2roo, dofroo),
-            fitStatus='-'.join(['%d' % fitResults.statusCodeHistory(i) for i in range(3)]),
+            fitStatus='-'.join(['%d' % fitResults.statusCodeHistory(i) for i in range(fitResults.numStatusHistory())]),
         )
 
     return row
@@ -163,7 +170,7 @@ class HTML :
     <style type="text/css">
         div.effResult {{
             margin: auto;
-            width: 60%;
+            width: 80%;
             border: 2px solid #888888;
         }}
 
@@ -195,7 +202,7 @@ class HTML :
     effTableRow = '''
         <tr style="background: {fitStatusColor}">
             <td><a href="{effName}/{binName}.png">{binNameNice}</a></td>
-            <td>{efficiencyNice}</td>
+            <td><a href="{effName}/{binName}.parameters.txt">{efficiencyNice}</a></td>
             <td>{fitStatus}</td>
             <td>{numSignalAll:.0f}</td>
             <td>{chi2} (Roo: {chi2roo})</td>
