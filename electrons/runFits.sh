@@ -31,6 +31,10 @@ cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root dirName=GsfElectronToTri
 cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root dirName=GsfElectronToTrigger idName=passingHLTEle17Ele12Leg1L1Match 2>&1 > /dev/null &
 cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root dirName=GsfElectronToTrigger idName=passingHLTEle17Ele12Leg2 2>&1 > /dev/null &
 
+# DZ Filter
+cmsRun fitter.py isMC=1 inputFileName=TnPTreeDZ_mc.root idName=passingHLTDZFilter dirName=GsfElectronToTrigger 2>&1 > /dev/null &
+cmsRun fitter.py isMC=0 inputFileName=TnPTreeDZ_data.root idName=passingHLTDZFilter dirName=GsfElectronToTrigger 2>&1 > /dev/null &
+
 wait
 
 hadd -f efficiency-mc.root efficiency-mc-*.root
