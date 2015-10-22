@@ -44,8 +44,8 @@ wait
 hadd -f efficiency-mc.root efficiency-mc-*.root
 hadd -f efficiency-data.root efficiency-data-*.root
 
-dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ~/www/TagProbePlots/newmuons
-dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ~/www/TagProbePlots/newmuons
+dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ~/www/TagProbePlots/muons
+dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ~/www/TagProbePlots/muons
 
 dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i globalMuonDZTree -o ~/www/TagProbePlots/globalMuonDZ
 dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i globalMuonDZTree -o ~/www/TagProbePlots/globalMuonDZ

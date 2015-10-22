@@ -40,8 +40,8 @@ wait
 hadd -f efficiency-mc.root efficiency-mc-*.root
 hadd -f efficiency-data.root efficiency-data-*.root
 
-dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i GsfElectronToRECO -o ~/www/TagProbePlots/newelectrons
-dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i GsfElectronToRECO -o ~/www/TagProbePlots/newelectrons
+dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i GsfElectronToRECO -o ~/www/TagProbePlots/electrons
+dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i GsfElectronToRECO -o ~/www/TagProbePlots/electrons
 
 dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i GsfElectronToTrigger -o ~/www/TagProbePlots/electronTrigger
 dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i GsfElectronToTrigger -o ~/www/TagProbePlots/electronTrigger
