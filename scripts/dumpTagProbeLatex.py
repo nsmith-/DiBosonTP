@@ -25,9 +25,14 @@ def subDirs(dir) :
         if key.IsFolder() :
             yield key.ReadObj()
 
-def get2DPlot(effDir) :
+def get2DPlot(effDir, isMC=False) :
     canvas = None
-    plotsDir = effDir.Get('fit_eff_plots')
+    plotsDir = None
+    if isMC :
+        plotsDir = effDir.Get('cnt_eff_plots')
+    else :
+        plotsDir = effDir.Get('fit_eff_plots')
+
     for key in plotsDir.GetListOfKeys() :
         if re.match('probe_.*abseta.*_probe_.*_PLOT.*', key.GetName()) :
             canvas = key.ReadObj()
@@ -127,11 +132,12 @@ def main() :
     parser.add_argument('--data', help='Data fit tree name', type=rootFileType, required=True)
     parser.add_argument('--output', '-o', help='Directory name for output', required=True)
     parser.add_argument('--input', '-i', help='Directory name in root files to load', default='muonEffs')
+    parser.add_argument('--count', '-c', help='Use count efficiency for MC', action='store_true')
     args = parser.parse_args()
 
     latexOutput = open(os.path.join(args.output, 'tables.tex.txt'), 'w')
 
-    mcPlots = [get2DPlot(effDir) for effDir in subDirs(args.mc.Get(args.input))]
+    mcPlots = [get2DPlot(effDir, args.count) for effDir in subDirs(args.mc.Get(args.input))]
     dataPlots = [get2DPlot(effDir) for effDir in subDirs(args.data.Get(args.input))]
 
     def makeFromDivide(num, denom) :

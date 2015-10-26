@@ -28,6 +28,11 @@ def main(options):
     fChain = fDir.Get("fitter_tree")
 
     histos = dict()
+    def nonNeg(hist) :
+        for b in range(hist.GetNbinsX()+1) :
+            if ( hist.GetBinContent(b) < 0. ) :
+                hist.SetBinContent(b, 0.)
+
 
     for binVar1 in xrange(len(var1s)-1):
         for binVar2 in xrange(len(var2s)-1):
@@ -46,8 +51,10 @@ def main(options):
             cuts = "(" + binning + " && "+options.idprobe+"==0"+")*"+options.weightVarName
             fChain.Draw("mass>>"+histos[hf].GetName(), cuts, "goff")
 
-            hpassInt = histos[hp].Integral()
-            hfailInt = histos[hf].Integral()
+            nonNeg(histos[hp])
+            nonNeg(histos[hf])
+            #hpassInt = histos[hp].Integral()
+            #hfailInt = histos[hf].Integral()
             #print hpassInt, hfailInt, hpassInt/(hpassInt+hfailInt)
     
     outFile = ROOT.TFile(options.output, "RECREATE")

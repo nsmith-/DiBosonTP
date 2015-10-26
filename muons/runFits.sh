@@ -4,8 +4,8 @@ cmsenv
 # MC ID/Iso
 cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIDZZLoose 2>&1 > /dev/null &
 cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIDZZTight 2>&1 > /dev/null &
-cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIsoZZ conditions=passingIDZZLoose outputFileName=fromZZLoose 2>&1 > /dev/null &
-cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIsoZZ conditions=passingIDZZTight outputFileName=fromZZTight 2>&1 > /dev/null &
+cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIsoZZ conditions=passingIDZZLoose outputFileName=passingIDZZLoose 2>&1 > /dev/null &
+cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIsoZZ conditions=passingIDZZTight outputFileName=passingIDZZTight 2>&1 > /dev/null &
 cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIDWZLoose 2>&1 > /dev/null &
 cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIDWZTight 2>&1 > /dev/null &
 cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIsoWZLoose conditions=passingIDWZLoose outputFileName=fromWZLoose 2>&1 > /dev/null &
@@ -29,10 +29,10 @@ dataFitSeq() {
   if [[ $conditions ]]; then
     condFileSafe=$(echo ${conditions}|tr ',' '_')
     getTemplatesFromMC.py ${commonTemplateFlags} -i TnPTree_mc.root -o mcTemplates-${idName}-${condFileSafe}.root --idprobe=${idName} --conditions="${conditions}"
-    cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=${idName} conditions=${conditions} outputFileName=${condFileSafe} 2>&1 > /dev/null &
+    cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=${idName} conditions=${conditions} outputFileName=${condFileSafe} mcTemplateFile=mcTemplates-${idName}-${condFileSafe}.root 2>&1 > /dev/null &
   else
     getTemplatesFromMC.py ${commonTemplateFlags} -i TnPTree_mc.root -o mcTemplates-${idName}.root --idprobe=${idName}
-    cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=${idName} 2>&1 > /dev/null &
+    cmsRun fitter.py isMC=0 inputFileName=TnPTree_data.root idName=${idName} mcTemplateFile=mcTemplates-${idName}.root  2>&1 > /dev/null &
   fi
 }
 
@@ -62,7 +62,7 @@ hadd -f efficiency-mc.root efficiency-mc-*.root
 hadd -f efficiency-data.root efficiency-data-*.root
 
 dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ~/www/TagProbePlots/muons
-dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ~/www/TagProbePlots/muons
+dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ~/www/TagProbePlots/muons --count
 
 dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i globalMuonDZTree -o ~/www/TagProbePlots/globalMuonDZ
 dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i globalMuonDZTree -o ~/www/TagProbePlots/globalMuonDZ

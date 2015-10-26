@@ -143,7 +143,7 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
             efficiencyNice='%.4f +%.4f %.4f' % (effBinInfo['efficiency'], effBinInfo['error_hi'], effBinInfo['error_lo']),
             effName=effBinDir.GetDirectory('..').GetName(),
             binName=binName,
-            binNameNice=binName.replace('__pdfSignalPlusBackground',''),
+            binNameNice=re.sub('__pdfSignal.*', '', binName),
             numSignalAll=fitResults.floatParsFinal().find('numSignalAll').getVal(),
             chi2='%.0f / %d' % (chi2, dof),
             chi2roo='%.0f / %d' % (chi2roo, dofroo),
@@ -159,7 +159,7 @@ def subDirs(dir) :
 
 def fitSubDirs(dir) :
     for key in dir.GetListOfKeys() :
-        if key.IsFolder() and re.match('probe.*_bin\d__probe.*_bin\d__.*pdfSignalPlusBackground', key.GetName()) :
+        if key.IsFolder() and re.match('probe.*_bin\d__probe.*_bin\d__.*pdfSignal.*', key.GetName()) :
             yield key.ReadObj()
 
 # HTML Templates
