@@ -136,15 +136,19 @@ process.TnPMeasurement = cms.EDAnalyzer("TagProbeFitTreeAnalyzer",
             "RooCBExGaussShape::signalResPass(mass,meanP[0.0,-5.000,5.000],sigmaP[0.97,0.00,15.000],alphaP[1.1, 0.0,50.0],nP[3.5,0.000,50.00],sigmaP_2[1.6,0.500,15.00])",
             "RooCBExGaussShape::signalResFail(mass,meanF[0.0,-5.000,5.000],sigmaF[2.97,0.00,15.000],alphaF[8.0, 0.0,50.0],nF[15.,0.000,20.00],sigmaF_2[2.0,0.500,12.00])",
             "ZGeneratorLineShape::signalPhy(mass, \"../data/ZmmGenLevel.root\")", 
+            "RooExponential::expoPass(mass, signalExpPass[0.,0.,0.1])",
+            "RooExponential::expoFail(mass, signalExpFail[0.,0.,0.1])",
+            "RooProdPdf::signalExpoWeightPass(signalPhy, expoPass)",
+            "RooProdPdf::signalExpoWeightFail(signalPhy, expoFail)",
             "RooCMSShape::backgroundPass(mass, alphaPass[70.], betaPass[0.02, 0.,0.1], gammaPass[0.1, 0, 1], peakPass[90.0])",
             "RooCMSShape::backgroundFail(mass, alphaFail[70.], betaFail[0.02, 0.,0.1], gammaFail[0.1, 0, 1], peakFail[90.0])",
-            "FCONV::signalPass(mass, signalPhy, signalResPass)",
-            "FCONV::signalFail(mass, signalPhy, signalResFail)",     
+            "FCONV::signalPass(mass, signalExpoWeightPass, signalResPass)",
+            "FCONV::signalFail(mass, signalExpoWeightFail, signalResFail)",     
             "efficiency[0.9,0,1]",
-            "signalFractionInPassing[1.0]"     
+            "signalFractionInPassing[1.0]"
             ),
-                                                        ),
-                                        )
+     ),
+)
 
 # Set categories
 setattr(process.TnPMeasurement.Categories, options.idName, cms.vstring(options.idName, "dummy[pass=1,fail=0]"))
