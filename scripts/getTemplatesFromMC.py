@@ -28,11 +28,13 @@ def main(options):
     fChain = fDir.Get("fitter_tree")
 
     histos = dict()
-    def nonNeg(hist) :
-        for b in range(hist.GetNbinsX()+1) :
-            if ( hist.GetBinContent(b) < 0. ) :
-                hist.SetBinContent(b, 0.)
 
+    def fixForPDFusage(hist) :
+        # Remove any negative-weighted bins, and
+        # apply a small value uniformly to gurantee no zero bins
+        for b in range(hist.GetNbinsX()+1) :
+            if ( hist.GetBinContent(b) <= 0. ) :
+                hist.SetBinContent(b, 0.0001)
 
     for binVar1 in xrange(len(var1s)-1):
         for binVar2 in xrange(len(var2s)-1):
@@ -51,8 +53,8 @@ def main(options):
             cuts = "(" + binning + " && "+options.idprobe+"==0"+")*"+options.weightVarName
             fChain.Draw("mass>>"+histos[hf].GetName(), cuts, "goff")
 
-            nonNeg(histos[hp])
-            nonNeg(histos[hf])
+            fixForPDFusage(histos[hp])
+            fixForPDFusage(histos[hf])
             #hpassInt = histos[hp].Integral()
             #hfailInt = histos[hf].Integral()
             #print hpassInt, hfailInt, hpassInt/(hpassInt+hfailInt)
