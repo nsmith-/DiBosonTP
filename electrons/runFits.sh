@@ -51,7 +51,7 @@ dataFitSeq GsfElectronToTrigger passingHLTEle17Ele12Leg1L1Match
 dataFitSeq GsfElectronToTrigger passingHLTEle17Ele12Leg2
 
 # DZ Filter
-cmsRun fitter.py isMC=1 inputFileName=TnPTreeDZ_mc.root idName=passingHLTDZFilter dirName=GsfElectronToTrigger 2>&1 > /dev/null
+cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTreeDZ_mc.root idName=passingHLTDZFilter dirName=GsfElectronToTrigger 2>&1 > /dev/null
 getTemplatesFromMC.py -i TnPTreeDZ_mc.root -o mcTemplates-passingDZ.root --idprobe=passingHLTDZFilter  \
   -d GsfElectronToTrigger --var2Name=probe_Ele_pt --var1Name=probe_Ele_abseta --var2Bins=10,20,30,40,50,100,1000 --var1Bins=0,1.5,2.5 --weightVarName=totWeight
 cmsRun fitter.py isMC=0 inputFileName=TnPTreeDZ_data.root idName=passingHLTDZFilter dirName=GsfElectronToTrigger mcTemplateFile=mcTemplates-passingDZ.root 2>&1 > /dev/null &
