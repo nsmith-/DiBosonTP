@@ -2,7 +2,7 @@
 import ROOT
 ROOT.gROOT.SetBatch(True)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
-import argparse, json, pickle, os, re
+import argparse, json, pickle, os, re, subprocess
 
 # mkdir -p 
 def mkdirP(dirname) :
@@ -58,7 +58,9 @@ def parseFitTree(baseDirectory, outputDirectory) :
 
             parseEfficiencyDir(effDir, effoutDir, index)
         
-        index.write(HTML.footer)
+        index.write(HTML.footer.format(
+                version=subprocess.check_output(["git", "describe", "--always"]).strip()
+            ))
 
 def parseEfficiencyDir(effDir, outputDirectory, index) :
     effName = effDir.GetName()
@@ -115,6 +117,10 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
             'error_hi' : effValue.getErrorHi(),
             'error_lo' : effValue.getErrorLo()
         }
+
+    if effValue.getVal()+effValue.getErrorHi() > 1. :
+        print "Found one! :"
+        effValue.Print()
 
     canvas = effBinDir.Get('fit_canvas')
     canvas.Print(os.path.join(outputDirectory, effBinDir.GetName()+'.png'))
@@ -210,6 +216,7 @@ class HTML :
 
 
     footer = '''</table>
+Generated using DiBosonTP version {version}<br />
 </body>
 </html>
 '''

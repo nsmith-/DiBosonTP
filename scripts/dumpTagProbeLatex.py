@@ -181,6 +181,9 @@ def main() :
         canvas.Update()
         canvas.Print(os.path.join(args.output, data.GetName()+'.png'))
 
+    import subprocess
+    table_json['version'] = subprocess.check_output(["git", "describe", "--always"]).strip()
+
     with open(os.path.join(args.output, 'table.json'), 'w') as out :
         json.dump(table_json, out, indent=4)
 
