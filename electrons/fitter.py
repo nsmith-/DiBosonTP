@@ -53,6 +53,14 @@ options.register(
     )
 
 options.register(
+    "mcTemplateFile",
+    "",
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.string,
+    "MC Templates for fit"
+    )
+
+options.register(
     "doCutAndCount",
     False,
     VarParsing.multiplicity.singleton,
@@ -99,6 +107,14 @@ EfficiencyBinningSpecification = cms.PSet(
 if len(options.conditions) > 0 :
     for condition in options.conditions :
         setattr(EfficiencyBinningSpecification.BinnedVariables, condition, cms.vstring("true"))
+
+if options.mcTemplateFile :
+    for absetabin in range(len(EfficiencyBins.probe_Ele_abseta)-1) :
+        for ptbin in range(len(EfficiencyBins.probe_Ele_pt)-1) :
+            EfficiencyBinningSpecification.BinToPDFmap += [
+                    "*probe_Ele_abseta_bin%d*probe_Ele_pt_bin%d*" % (absetabin, ptbin),
+                    "pdfSignal_probe_Ele_abseta_bin%d__probe_Ele_pt_bin%d" % (absetabin, ptbin)
+                ]
 
 if options.isMC :
     setattr(EfficiencyBinningSpecification.BinnedVariables, 'mcTrue', cms.vstring("true"))
@@ -171,6 +187,27 @@ setattr(process.TnPMeasurement.Efficiencies, effName, cms.PSet(
 # MC weight
 #if options.isMC :
 #    setattr(process.TnPMeasurement, 'WeightVariable', cms.string("totWeight"))
+
+# Templates
+pdfDef = cms.vstring(
+    "RooCBExGaussShape::signalResPass(mass,meanPSmearing[0.0,-5.000,5.000],sigmaP[0.97,0.00,15.000],alphaP[1.1, 0.0,50.0],nP[3.5,0.000,50.00],sigmaP_2[1.6,0.500,15.00])",
+    "RooCBExGaussShape::signalResFail(mass,meanFSmearing[0.0,-5.000,5.000],sigmaF[2.97,0.00,15.000],alphaF[8.0, 0.0,50.0],nF[15.,0.000,20.00],sigmaF_2[2.0,0.500,12.00])",
+    "RooCMSShape::backgroundPass(mass, alphaPass[70.], betaPass[0.02, 0.,0.1], gammaPass[0.1, 0, 1], peakPass[90.0])",
+    "RooCMSShape::backgroundFail(mass, alphaFail[70.], betaFail[0.02, 0.,0.1], gammaFail[0.1, 0, 1], peakFail[90.0])",
+    "FCONV::signalPass(mass, signalPhyPass, signalResPass)",
+    "FCONV::signalFail(mass, signalPhyFail, signalResFail)",     
+    "efficiency[0.9,0,1]",
+    "signalFractionInPassing[1.0]"     
+    )
+if options.mcTemplateFile :
+    for absetabin in range(len(EfficiencyBins.probe_Ele_abseta)-1) :
+        for ptbin in range(len(EfficiencyBins.probe_Ele_pt)-1) :
+            pdfName = "probe_Ele_abseta_bin%d__probe_Ele_pt_bin%d" % (absetabin, ptbin)
+            thisDef = cms.vstring(
+                    'ZGeneratorLineShape::signalPhyPass(mass, "%s", "%s")' % (options.mcTemplateFile, 'hMass_%s_Pass' % pdfName),
+                    'ZGeneratorLineShape::signalPhyFail(mass, "%s", "%s")' % (options.mcTemplateFile, 'hMass_%s_Fail' % pdfName)
+                )
+            setattr(process.TnPMeasurement.PDFs, 'pdfSignal_'+pdfName, thisDef+pdfDef)
 
 # switch pdf settings
 
