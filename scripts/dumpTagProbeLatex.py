@@ -147,6 +147,9 @@ def main() :
 
     ratioPlots = ( (p1, p2, makeFromDivide(p1, p2)) for p1 in dataPlots for p2 in mcPlots if p1.GetName() == p2.GetName().replace('_mcTrue',''))
 
+    ROOT.gStyle.SetOptDate(0)
+    ROOT.gStyle.SetHistLineWidth(2)
+
     table_json = {}
     for (data,mc,ratio) in ratioPlots :
         latexOutput.write(makeLatex(data, mc, ratio))
@@ -174,7 +177,7 @@ def main() :
         stack.Add(mcproj, 'ep')
         stack.Add(ratioproj, 'ep')
         stack.SetMinimum(0)
-        stack.SetMaximum(1.05)
+        stack.SetMaximum(1.2)
         stack.Draw('nostack')
         leg = canvas.BuildLegend(.5,.2,.9,.4)
         leg.SetHeader(data.GetName())
