@@ -125,15 +125,17 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
     canvas = effBinDir.Get('fit_canvas')
     canvas.Print(os.path.join(outputDirectory, effBinDir.GetName()+'.png'))
 
+    passing = canvas.FindObject('fit_canvas_1')
+    (chi2, dof) = makeChi2(passing, fitResults.floatParsFinal().getSize())
+    (chi2roo, dofroo) = makeChi2_roofit(passing, fitResults.floatParsFinal().getSize())
+
     with open(os.path.join(outputDirectory, effBinDir.GetName()+'.parameters.txt'), 'w') as paramOut :
+        paramOut.write("# Fit chi2/dof: %f / %d\n" % (chi2, dof))
+        paramOut.write("# Fit chi2/dof (roofit): %f / %d\n" % (chi2roo, dofroo))
         params = fitResults.floatParsFinal()
         for p in xrange(params.getSize()):
             myPar = params.at(p)
             paramOut.write("%s[%.3f,%.3f,%.3f]\n"%(myPar.GetName(), myPar.getVal(), myPar.getMin(), myPar.getMax()))
-
-    passing = canvas.FindObject('fit_canvas_1')
-    (chi2, dof) = makeChi2(passing, fitResults.floatParsFinal().getSize())
-    (chi2roo, dofroo) = makeChi2_roofit(passing, fitResults.floatParsFinal().getSize())
 
     colors = ['#79ff00', '#ffff00', '#ff7700', '#ff0000']
     thresholds = [1., 5., 10., 100.]

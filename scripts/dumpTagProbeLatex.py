@@ -183,6 +183,7 @@ def main() :
         leg.SetHeader(data.GetName())
         canvas.Update()
         canvas.Print(os.path.join(args.output, data.GetName()+'.png'))
+        canvas.Print(os.path.join(args.output, data.GetName()+'.pdf'))
 
     import subprocess
     table_json['version'] = subprocess.check_output(["git", "describe", "--always"]).strip()
