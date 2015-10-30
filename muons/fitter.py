@@ -68,6 +68,14 @@ options.register(
     "Perform cut and count efficiency measurement"
     )
 
+options.register(
+    "startEfficiency",
+    0.9,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.float,
+    "Adjust default efficiency used to seed the start of fit"
+    )
+
 options.parseArguments()
 
 
@@ -191,13 +199,13 @@ setattr(process.TnPMeasurement.Efficiencies, effName, cms.PSet(
 
 # Templates
 pdfDef = cms.vstring(
-    "Gaussian::signalResPass(mass,meanPSmearing[0.0,-5.000,5.000],sigmaPSmearing[0.2,0.00,5.000])",
-    "Gaussian::signalResFail(mass,meanFSmearing[0.0,-5.000,5.000],sigmaFSmearing[0.2,0.00,5.000])",
+    "Gaussian::signalResPass(mass,meanPSmearing[0.0,-5.000,5.000],sigmaPSmearing[0.2,0.07,5.000])",
+    "Gaussian::signalResFail(mass,meanFSmearing[0.0,-5.000,5.000],sigmaFSmearing[0.2,0.07,5.000])",
     "RooCMSShape::backgroundPass(mass, alphaPass[70.], betaPass[0.02, 0.,0.1], gammaPass[0.1, 0, 1], peakPass[90.0])",
     "RooCMSShape::backgroundFail(mass, alphaFail[70.], betaFail[0.02, 0.,0.1], gammaFail[0.1, 0, 1], peakFail[90.0])",
     "FCONV::signalPass(mass, signalPhyPass, signalResPass)",
     "FCONV::signalFail(mass, signalPhyFail, signalResFail)",     
-    "efficiency[0.9,0,1]",
+    "efficiency[%f,0,1]" % options.startEfficiency,
     "signalFractionInPassing[1.0]"     
     )
 if options.mcTemplateFile :
