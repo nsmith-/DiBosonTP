@@ -41,10 +41,11 @@ def main(options):
             histNameSt = "hMass_%s_bin%d__%s_bin%d" % (options.var1Name, binVar1, options.var2Name, binVar2)
             hp = histNameSt+"_Pass"
             hf = histNameSt+"_Fail"
-            histos[hp] = ROOT.TH1D(hp, hp, 120, 60, 120)
-            histos[hf] = ROOT.TH1D(hf, hf, 120, 60, 120)
+            (minMass, maxMass) = map(float, options.massWindow.split(","))
+            histos[hp] = ROOT.TH1D(hp, hp, 120, minMass, maxMass)
+            histos[hf] = ROOT.TH1D(hf, hf, 120, minMass, maxMass)
             
-            binning = "mcTrue == 1 && pair_mass60to120 && "+options.var1Name +">"+str(var1s[binVar1])+" && "+options.var1Name +"<"+str(var1s[binVar1+1])+" && "+options.var2Name +">"+str(var2s[binVar2])+" && "+options.var2Name +"<"+str(var2s[binVar2+1])
+            binning = "mcTrue == 1 && "+options.var1Name +">"+str(var1s[binVar1])+" && "+options.var1Name +"<"+str(var1s[binVar1+1])+" && "+options.var2Name +">"+str(var2s[binVar2])+" && "+options.var2Name +"<"+str(var2s[binVar2+1])
             if options.conditions :
                 for condition in options.conditions.split(',') :
                     binning += " && %s==1" % condition
@@ -77,6 +78,7 @@ if __name__ == "__main__":
     parser.add_option("", "--var1Name", default="probe_sc_eta", help="Variable1 branch name")
     parser.add_option("", "--var2Name", default="probe_sc_et", help="Variable2 branch name")
     parser.add_option("", "--weightVarName", default="totWeight", help="Weight variable branch name")
+    parser.add_option("", "--massWindow", default="60,120", help="Mass window to generate template for")
 
     (options, arg) = parser.parse_args()
      
