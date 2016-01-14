@@ -15,7 +15,7 @@ if [[ $1 == 'doMC' ]]; then
 fi
 
 # Make MC templates for data fit
-commonTemplateFlags="-d muonEffs --var2Name=probe_pt --var1Name=probe_abseta --var2Bins=5,15,25,100 --var1Bins=0,1.5,2.5 --weightVarName=totWeight --massWindow=2.5,3.5"
+commonTemplateFlags="-d muonEffs --var2Name=probe_pt --var1Name=probe_abseta --var2Bins=5,10,20,30 --var1Bins=0,1.5,2.5 --weightVarName=totWeight --massWindow=2.5,3.5"
 dataFitSeq() {
   idName=$1
   shift

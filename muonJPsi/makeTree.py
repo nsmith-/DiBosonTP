@@ -16,7 +16,7 @@ isolationDef = "(chargedHadronIso+max(photonIso+neutralHadronIso-0.5*puChargedHa
 config = {}
 config['MUON_COLL']           = "slimmedMuons"
 config['MUON_CUTS']           = "(isTrackerMuon || isGlobalMuon) && abs(eta)<2.5 && pt > 5"
-config['MUON_TAG_CUTS']       = "userInt('isTightMuon')==1 && pt > 25 && abs(eta) < 2.1 && "+isolationDef+" < 0.2"
+config['MUON_TAG_CUTS']       = "userInt('isTightMuon')==1 && pt > 22 && abs(eta) < 2.1 && "+isolationDef+" < 0.2"
 config['MUON_TAG_TRIGGER']    = "hltL3crIsoL1sMu16L1f0L2f10QL3f20QL3trkIsoFiltered0p09"
 config['DEBUG']               = cms.bool(False)
 config['json']                = 'Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
@@ -115,7 +115,7 @@ process.probeTriggerSeq += process.probeTriggersTkMu8Leg
 
 process.tpPairs = cms.EDProducer("CandViewShallowCloneCombiner",
     decay = cms.string("tagMuonsTriggerMatched@+ probeMuons@-"), # charge coniugate states are implied
-    cut   = cms.string("2 < mass < 4")
+    cut   = cms.string("2.5 < mass < 3.5")
 )
 
 process.muMcMatch = cms.EDProducer("MCTruthDeltaRMatcherNew",
@@ -168,7 +168,8 @@ CommonStuffForMuonProbe = cms.PSet(
     #pfMet = cms.InputTag(""),
     pairVariables =  cms.PSet(ZVariablesToStore),
     pairFlags     =  cms.PSet(
-        mass60to120 = cms.string("60 < mass < 120")
+        mass60to120 = cms.string("60 < mass < 120"),
+        pt_lower_100 = cms.string("pt<100"),
         ),
     tagVariables   =  cms.PSet(TagVariablesToStore),
     tagFlags       =  cms.PSet(),    

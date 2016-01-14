@@ -102,7 +102,7 @@ else:
 ################################################
 
 EfficiencyBins = cms.PSet(
-    probe_pt  = cms.vdouble( 5, 15, 25, 100 ),
+    probe_pt  = cms.vdouble( 5, 10, 20, 30 ),
     probe_abseta = cms.vdouble( 0.0, 1.5, 2.5), 
     )
 
