@@ -15,11 +15,11 @@ options.parseArguments()
 isolationDef = "(chargedHadronIso+max(photonIso+neutralHadronIso-0.5*puChargedHadronIso,0.0))/pt"
 config = {}
 config['MUON_COLL']           = "slimmedMuons"
-config['MUON_CUTS']           = "(isTrackerMuon || isGlobalMuon) && abs(eta)<2.5 && pt > 10"
+config['MUON_CUTS']           = "(isTrackerMuon || isGlobalMuon) && abs(eta)<2.5 && pt > 5"
 config['MUON_TAG_CUTS']       = "userInt('isTightMuon')==1 && pt > 25 && abs(eta) < 2.1 && "+isolationDef+" < 0.2"
 config['MUON_TAG_TRIGGER']    = "hltL3crIsoL1sMu16L1f0L2f10QL3f20QL3trkIsoFiltered0p09"
 config['DEBUG']               = cms.bool(False)
-config['json']                = 'Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+config['json']                = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt'
 
 # file dataset=/SingleMuon/Run2015D-05Oct2015-v1/MINIAOD
 # https://cmsweb.cern.ch/das/request?view=plain&limit=50&instance=prod%2Fglobal&input=file+dataset%3D%2FSingleMuon%2FRun2015D-05Oct2015-v1%2FMINIAOD

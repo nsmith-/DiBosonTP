@@ -18,7 +18,7 @@ varOptions.parseArguments()
 
 options['HLTProcessName']          = "HLT"
 options['ELECTRON_COLL']           = "slimmedElectrons"
-options['ELECTRON_CUTS']           = "abs(eta)<2.5 && pt > 10"
+options['ELECTRON_CUTS']           = "abs(eta)<2.5 && pt > 7"
 options['ELECTRON_TAG_CUTS']       = "(abs(superCluster.eta)<=2.5) && !(1.4442<=abs(superCluster.eta)<=1.566) && pt >= 25.0"
 options['SUPERCLUSTER_COLL']       = "reducedEgamma:reducedSuperClusters"
 options['SUPERCLUSTER_CUTS']       = "abs(eta)<2.5 && !(1.4442< abs(eta) <1.566) && et>10.0"
@@ -29,7 +29,7 @@ options['DORECO']                  = cms.bool(True)
 options['DOID']                    = cms.bool(True)
 options['OUTPUTEDMFILENAME']       = 'edmFile.root'
 options['DEBUG']                   = cms.bool(False)
-options['json']                    = 'Cert_246908-258750_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+options['json']                    = 'Cert_246908-260627_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt'
 
 # file dataset=/SingleElectron/Run2015D-05Oct2015-v1/MINIAOD
 # https://cmsweb.cern.ch/das/request?view=plain&limit=50&instance=prod%2Fglobal&input=file+dataset%3D%2FSingleElectron%2FRun2015D-05Oct2015-v1%2FMINIAOD
