@@ -27,9 +27,11 @@ submit() {
 }
 
 submit muonTP makeTree.py /DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM DYJetsMC.txt isMC=1
-submit muonTPData makeTree.py /SingleMuon/Run2015D-05Oct2015-v1/MINIAOD SingleMuon.txt isMC=0
-submit muonTPDataPrompt makeTree.py /SingleMuon/Run2015D-PromptReco-v4/MINIAOD SingleMuonPrompt.txt isMC=0
-submit muonTPDataC makeTree.py /SingleMuon/Run2015C_25ns-16Dec2015-v1/MINIAOD SingleMuonC.txt isMC=0
+submit muonTPData makeTree.py       /SingleMuon/Run2015D-05Oct2015-v1/MINIAOD      SingleMuon.txt isMC=0
+submit muonTPDataPrompt makeTree.py /SingleMuon/Run2015D-PromptReco-v4/MINIAOD     SingleMuonPrompt.txt isMC=0
+submit muonTPDataC makeTree.py      /SingleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD SingleMuonC.txt isMC=0
 
-#submit muonTPMC   makeDZTree.py /DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM DYJetsMC.txt isMC=1
-#submit muonTPData makeDZTree.py /DoubleMuon/Run2015D-05Oct2015-v1/MINIAOD DoubleMuon.txt isMC=0
+submit muonTPMC   makeDZTree.py /DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM DYJetsMC.txt isMC=1
+submit muonTPData makeDZTree.py       /DoubleMuon/Run2015D-05Oct2015-v1/MINIAOD       DoubleMuon.txt isMC=0
+submit muonTPDataPrompt makeDZTree.py /DoubleMuon/Run2015D-PromptReco-v4/MINIAOD      DoubleMuonPrompt.txt isMC=0
+submit muonTPDataC makeDZTree.py      /DoubleMuon/Run2015C_25ns-05Oct2015-v1/MINIAOD  DoubleMuonC.txt isMC=0

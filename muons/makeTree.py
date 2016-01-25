@@ -214,9 +214,10 @@ process.muonEffs = cms.EDAnalyzer("TagProbeFitTreeProducer",
         ),
         passingIsoZZ = cms.string(isolationDef+" < 0.4"),
 
-        passingIDWZLoose  = cms.string("isLooseMuon"), 
-        passingIDWZTight  = cms.string("userInt('isTightMuon')==1"), 
-        passingIsoWZLoose = cms.string(isolationDef+" < 0.2"),
+        passingIDWZLoose  = cms.string("isMediumMuon && trackIso()/pt()<0.25 && abs(userFloat('dxyToPV')) < 0.02 && abs(userFloat('dzToPV')) < 0.1"), 
+        passingIDWZLooseNoTrackIso  = cms.string("isMediumMuon && abs(userFloat('dxyToPV')) < 0.02 && abs(userFloat('dzToPV')) < 0.1"), 
+        passingTightID  = cms.string("userInt('isTightMuon')==1"), 
+        passingIsoWZLoose = cms.string(isolationDef+" < 0.4"),
         passingIsoWZTight = cms.string(isolationDef+" < 0.12"),
 
         passingMu17 = cms.InputTag("probeTriggersMu17Leg"),
