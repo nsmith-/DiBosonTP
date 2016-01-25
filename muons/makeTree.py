@@ -118,6 +118,12 @@ process.tpPairs = cms.EDProducer("CandViewShallowCloneCombiner",
     cut   = cms.string("40 < mass < 200")
 )
 
+process.tpPairsMCEmbedded = cms.EDProducer("pairMCInfoEmbedder",
+    input = cms.InputTag("tpPairs"),
+    leg1Matches = cms.InputTag("muMcMatch"),
+    leg2Matches = cms.InputTag("muMcMatch")
+)
+
 process.muMcMatch = cms.EDProducer("MCTruthDeltaRMatcherNew",
     pdgId = cms.vint32(13),
     src = cms.InputTag("tightMuons"),
@@ -226,10 +232,13 @@ process.tpPairSeq = cms.Sequence(
 )
 
 if options.isMC :
-    process.tpPairSeq += process.muMcMatch 
+    process.tpPairSeq += process.muMcMatch
+    process.tpPairSeq += process.tpPairsMCEmbedded
     process.muonEffs.isMC = cms.bool(True)
     process.muonEffs.eventWeight   = cms.InputTag("generator")
     process.muonEffs.PUWeightSrc   = cms.InputTag("pileupReweightingProducer","pileupWeights")
+    setattr(process.muonEffs.pairVariables, 'mc_mass', cms.string("userFloat('mc_mass')"))
+    process.muonEffs.tagProbePairs = cms.InputTag("tpPairsMCEmbedded")
     process.tpPairSeq += process.pileupReweightingProducer
 
 if not options.isMC :
