@@ -56,15 +56,22 @@ process.load('FWCore.MessageService.MessageLogger_cfi')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(options.maxEvents) )
 
 process.tightMuons = cms.EDProducer("stupidTightMuonProducer",
     src = cms.InputTag("slimmedMuons"),
     vtx = cms.InputTag("offlineSlimmedPrimaryVertices")
 )
+#process.muonInitialSequence = cms.Sequence(process.tightMuons)
+#muonSource = 'tightMuons'
+
+process.load('Analysis.DiBosonTP.ZZIDIsoEmbedding_cff')
+process.muonZZIDEmbedding.src = cms.InputTag("tightMuons")
+process.muonInitialSequence = cms.Sequence(process.tightMuons*process.zzEmbedding)
+muonSource = 'leptonZZIsoEmbedding:muons'
 
 process.tagMuons = cms.EDFilter("PATMuonRefSelector",
-    src = cms.InputTag("tightMuons"),
+    src = cms.InputTag(muonSource),
     cut = cms.string(config['MUON_TAG_CUTS']),
     filter = cms.bool(True)
 )
@@ -79,7 +86,7 @@ process.tagMuonsTriggerMatched = cms.EDProducer("PatMuonTriggerCandProducer",
     )
 
 process.probeMuons = cms.EDFilter("PATMuonRefSelector",
-    src = cms.InputTag("tightMuons"),
+    src = cms.InputTag(muonSource),
     cut = cms.string(config['MUON_CUTS']), 
 )
 
@@ -126,7 +133,7 @@ process.tpPairsMCEmbedded = cms.EDProducer("pairMCInfoEmbedder",
 
 process.muMcMatch = cms.EDProducer("MCTruthDeltaRMatcherNew",
     pdgId = cms.vint32(13),
-    src = cms.InputTag("tightMuons"),
+    src = cms.InputTag(muonSource),
     distMin = cms.double(0.3),
     matched = cms.InputTag("prunedGenParticles"),
     checkCharge = cms.bool(True)
@@ -204,15 +211,9 @@ process.muonEffs = cms.EDAnalyzer("TagProbeFitTreeProducer",
     tagProbePairs = cms.InputTag("tpPairs"),
     arbitration   = cms.string("Random2"),
     flags         = cms.PSet(
-        passingIDZZLoose  = cms.string(
-            "pt > 5. && abs(eta) < 2.4 && (isGlobalMuon || (isTrackerMuon && numberOfMatches > 0)) && muonBestTrackType != 2 "
-            "&& abs(userFloat('dxyToPV')) < 0.5 && abs(userFloat('dzToPV')) < 1."
-        ),
-        passingIDZZTight  = cms.string(
-            "pt > 5. && abs(eta) < 2.4 && (isGlobalMuon || (isTrackerMuon && numberOfMatches > 0)) && muonBestTrackType != 2 "
-            "&& abs(userFloat('dxyToPV')) < 0.5 && abs(userFloat('dzToPV')) < 1. && isPFMuon"
-        ),
-        passingIsoZZ = cms.string(isolationDef+" < 0.4"),
+        passingIDZZLoose  = cms.string("userFloat('HZZ4lIDPass')"),
+        passingIDZZTight  = cms.string("userFloat('HZZ4lIDPassTight')"),
+        passingIsoZZ      = cms.string("userFloat('HZZ4lIsoPass')"),
 
         passingIDWZLoose  = cms.string("isMediumMuon && trackIso()/pt()<0.25 && abs(userFloat('dxyToPV')) < 0.02 && abs(userFloat('dzToPV')) < 0.1"), 
         passingIDWZLooseNoTrackIso  = cms.string("isMediumMuon && abs(userFloat('dxyToPV')) < 0.02 && abs(userFloat('dzToPV')) < 0.1"), 
@@ -247,7 +248,7 @@ if not options.isMC :
     process.source.lumisToProcess = LumiList.LumiList(filename = '/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions15/13TeV/'+config['json']).getVLuminosityBlockRange()
 
 process.p = cms.Path(
-    process.tightMuons *
+    process.muonInitialSequence *
     (process.tagMuons + process.probeMuons) *
     (process.tagMuonsTriggerMatched + process.probeTriggerSeq) *
     process.tpPairSeq *
