@@ -102,7 +102,7 @@ else:
 ################################################
 
 EfficiencyBins = cms.PSet(
-    probe_pt  = cms.vdouble( 10, 20, 30, 40, 50, 100, 1000 ),
+    probe_pt  = cms.vdouble( 5, 10, 20, 30, 40, 50, 100, 1000 ),
     probe_abseta = cms.vdouble( 0.0, 1.5, 2.5), 
     )
 
@@ -199,14 +199,17 @@ setattr(process.TnPMeasurement.Efficiencies, effName, cms.PSet(
 
 # Templates
 pdfDef = cms.vstring(
-    "Gaussian::signalResPass(mass,meanPSmearing[0.0,-5.000,5.000],sigmaPSmearing[0.2,0.07,5.000])",
-    "Gaussian::signalResFail(mass,meanFSmearing[0.0,-5.000,5.000],sigmaFSmearing[0.2,0.07,5.000])",
-    "RooCMSShape::backgroundPass(mass, alphaPass[70.], betaPass[0.02, 0.,0.1], gammaPass[0.1, 0, 1], peakPass[90.0])",
-    "RooCMSShape::backgroundFail(mass, alphaFail[70.], betaFail[0.02, 0.,0.1], gammaFail[0.1, 0, 1], peakFail[90.0])",
-    "FCONV::signalPass(mass, signalPhyPass, signalResPass)",
-    "FCONV::signalFail(mass, signalPhyFail, signalResFail)",     
+    #"Gaussian::signalResPass(mass,meanPSmearing[0.0,-5.000,5.000],sigmaPSmearing[0.2,0.07,5.000])",
+    #"Gaussian::signalResFail(mass,meanFSmearing[0.0,-5.000,5.000],sigmaFSmearing[0.2,0.07,5.000])",
+    "Gaussian::signalRes(mass,meanSmearing[0.0,-5.000,5.000],sigmaSmearing[0.2,0.07,5.000])",
+    #"RooCMSShape::backgroundPass(mass, alphaPass[70.], betaPass[0.02, 0.,0.1], gammaPass[0.1, 0, 1], peakPass[90.0])",
+    #"RooCMSShape::backgroundFail(mass, alphaFail[70.], betaFail[0.02, 0.,0.1], gammaFail[0.1, 0, 1], peakFail[90.0])",
+    "RooBernstein::backgroundPass(mass, {a0[10,0,50],a1[1,0,50],a2[1,0,50],a3[1,0,50]})",
+    "RooBernstein::backgroundFail(mass, {b0[10,0,50],b1[1,0,50],b2[1,0,50],b3[1,0,50]})",
+    "FCONV::signalPass(mass, signalPhyPass, signalRes)",
+    "FCONV::signalFail(mass, signalPhyFail, signalRes)",
     "efficiency[%f,0,1]" % options.startEfficiency,
-    "signalFractionInPassing[1.0]"     
+    "signalFractionInPassing[1.0]"
     )
 if options.mcTemplateFile :
     for absetabin in range(len(EfficiencyBins.probe_abseta)-1) :

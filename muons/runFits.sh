@@ -7,10 +7,6 @@ if [[ $1 == 'doMC' ]]; then
   cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIDZZTight 2>&1 > /dev/null
   cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIsoZZ conditions=passingIDZZLoose outputFileName=passingIDZZLoose 2>&1 > /dev/null
   cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIsoZZ conditions=passingIDZZTight outputFileName=passingIDZZTight 2>&1 > /dev/null
-  cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIDWZLoose 2>&1 > /dev/null
-  cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIDWZTight 2>&1 > /dev/null
-  cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIsoWZLoose conditions=passingIDWZLoose outputFileName=fromWZLoose 2>&1 > /dev/null
-  cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingIsoWZTight conditions=passingIDWZTight outputFileName=fromWZTight 2>&1 > /dev/null
 
   # MC Triggers
   cmsRun fitter.py isMC=1 doCutAndCount=1 inputFileName=TnPTree_mc.root idName=passingMu17 2>&1 > /dev/null
@@ -24,7 +20,7 @@ if [[ $1 == 'doMC' ]]; then
 fi
 
 # Make MC templates for data fit
-commonTemplateFlags="-d muonEffs --var2Name=probe_pt --var1Name=probe_abseta --var2Bins=10,20,30,40,50,100,1000 --var1Bins=0,1.5,2.5 --weightVarName=totWeight"
+commonTemplateFlags="-d muonEffs --var2Name=probe_pt --var1Name=probe_abseta --var2Bins=5,10,20,30,40,50,100,1000 --var1Bins=0,1.5,2.5 --weightVarName=totWeight"
 dataFitSeq() {
   idName=$1
   shift
@@ -51,10 +47,6 @@ dataFitSeq passingIDZZLoose
 dataFitSeq passingIDZZTight
 dataFitSeq passingIsoZZ passingIDZZLoose
 dataFitSeq passingIsoZZ passingIDZZTight
-dataFitSeq passingIDWZLoose
-dataFitSeq passingIDWZTight
-dataFitSeq passingIsoWZLoose passingIDWZLoose
-dataFitSeq passingIsoWZTight passingIDWZTight
 
 # Data Triggers
 dataFitSeq passingMu17
@@ -76,11 +68,13 @@ wait
 hadd -f efficiency-mc.root efficiency-mc-*.root
 hadd -f efficiency-data.root efficiency-data-*.root
 
-dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ~/www/TagProbePlots/muons
-dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ~/www/TagProbePlots/muons --count
+outDir=~/www/TagProbePlots/$(git describe)
 
-dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i globalMuonDZTree -o ~/www/TagProbePlots/globalMuonDZ
-dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i globalMuonDZTree -o ~/www/TagProbePlots/globalMuonDZ --count
+dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ${outDir}/muons
+dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i muonEffs -o ${outDir}/muons --count
+
+dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i globalMuonDZTree -o ${outDir}/globalMuonDZ
+dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i globalMuonDZTree -o ${outDir}/globalMuonDZ --count
 
 dumpTagProbeTreeHTML.py --mc efficiency-mc.root --data efficiency-data.root -i trackerMuonDZTree -o ~/www/TagProbePlots/trackerMuonDZ
 dumpTagProbeLatex.py --mc efficiency-mc.root --data efficiency-data.root -i trackerMuonDZTree -o ~/www/TagProbePlots/trackerMuonDZ --count
