@@ -158,13 +158,16 @@ process.TnPMeasurement = cms.EDAnalyzer("TagProbeFitTreeAnalyzer",
                                         # and "signalFractionInPassing[0.9]" are used for initial values  
                                         PDFs = cms.PSet(
         pdfSignalPlusBackground = cms.vstring(
-            "RooCBExGaussShape::signalResPass(mass,meanP[0.0,-5.000,5.000],sigmaP[0.97,0.00,15.000],alphaP[1.1, 0.0,50.0],nP[3.5,0.000,50.00],sigmaP_2[1.6,0.500,15.00])",
-            "RooCBExGaussShape::signalResFail(mass,meanF[0.0,-5.000,5.000],sigmaF[2.97,0.00,15.000],alphaF[8.0, 0.0,50.0],nF[15.,0.000,20.00],sigmaF_2[2.0,0.500,12.00])",
+            #"RooCBExGaussShape::signalResPass(mass,meanP[0.0,-5.000,5.000],sigmaP[0.97,0.00,15.000],alphaP[1.1, 0.0,50.0],nP[3.5,0.000,50.00],sigmaP_2[1.6,0.500,15.00])",
+            #"RooCBExGaussShape::signalResFail(mass,meanF[0.0,-5.000,5.000],sigmaF[2.97,0.00,15.000],alphaF[8.0, 0.0,50.0],nF[15.,0.000,20.00],sigmaF_2[2.0,0.500,12.00])",
+            "Gaussian::signalRes(mass,meanSmearing[0.0,-5.000,5.000],sigmaSmearing[0.2,0.07,5.000])",
             "ZGeneratorLineShape::signalPhy(mass, \"../data/ZmmGenLevel.root\")", 
-            "RooCMSShape::backgroundPass(mass, alphaPass[70.], betaPass[0.02, 0.,0.1], gammaPass[0.1, 0, 1], peakPass[90.0])",
-            "RooCMSShape::backgroundFail(mass, alphaFail[70.], betaFail[0.02, 0.,0.1], gammaFail[0.1, 0, 1], peakFail[90.0])",
-            "FCONV::signalPass(mass, signalPhy, signalResPass)",
-            "FCONV::signalFail(mass, signalPhy, signalResFail)",     
+            #"RooCMSShape::backgroundPass(mass, alphaPass[70.], betaPass[0.02, 0.,0.1], gammaPass[0.1, 0, 1], peakPass[90.0])",
+            #"RooCMSShape::backgroundFail(mass, alphaFail[70.], betaFail[0.02, 0.,0.1], gammaFail[0.1, 0, 1], peakFail[90.0])",
+            "RooBernstein::backgroundPass(mass, {a0[10,0,50],a1[1,0,50],a2[1,0,50],a3[1,0,50]})",
+            "RooBernstein::backgroundFail(mass, {b0[10,0,50],b1[1,0,50],b2[1,0,50],b3[1,0,50]})",
+            "FCONV::signalPass(mass, signalPhy, signalRes)",
+            "FCONV::signalFail(mass, signalPhy, signalRes)",     
             "efficiency[0.9,0,1]",
             "signalFractionInPassing[1.0]"     
             ),
