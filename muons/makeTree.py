@@ -211,9 +211,9 @@ process.muonEffs = cms.EDAnalyzer("TagProbeFitTreeProducer",
     tagProbePairs = cms.InputTag("tpPairs"),
     arbitration   = cms.string("Random2"),
     flags         = cms.PSet(
-        passingIDZZLoose  = cms.string("userFloat('HZZ4lIDPass')"),
-        passingIDZZTight  = cms.string("userFloat('HZZ4lIDPassTight')"),
-        passingIsoZZ      = cms.string("userFloat('HZZ4lIsoPass')"),
+        passingIDZZLoose  = cms.string("userFloat('HZZIDPass')"),
+        passingIDZZTight  = cms.string("userFloat('HZZIDPassTight')"),
+        passingIsoZZ      = cms.string("userFloat('HZZIsoPass')"),
 
         passingIDWZLoose  = cms.string("isMediumMuon && trackIso()/pt()<0.25 && abs(userFloat('dxyToPV')) < 0.02 && abs(userFloat('dzToPV')) < 0.1"), 
         passingIDWZLooseNoTrackIso  = cms.string("isMediumMuon && abs(userFloat('dxyToPV')) < 0.02 && abs(userFloat('dzToPV')) < 0.1"), 
