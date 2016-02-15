@@ -19,7 +19,7 @@ submit() {
   farmoutAnalysisJobs $jobName \
     --infer-cmssw-path \
     --input-file-list=${cachefile} \
-    --input-dir=root://cmsxrootd.fnal.gov/ \
+    --input-dir=root://cmsxrootd.hep.wisc.edu/ \
     --assume-input-files-exist \
     --input-files-per-job=10 \
     ${pythonFile} \
