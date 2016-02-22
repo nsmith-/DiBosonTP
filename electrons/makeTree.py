@@ -17,15 +17,15 @@ varOptions.register(
 varOptions.parseArguments()
 
 options['HLTProcessName']          = "HLT"
-options['ELECTRON_COLL']           = "slimmedElectrons"
+options['ELECTRON_COLL']           = "leptonZZIsoEmbedding:electrons"
 options['ELECTRON_CUTS']           = "abs(eta)<2.5 && pt > 7"
 options['ELECTRON_TAG_CUTS']       = "(abs(superCluster.eta)<=2.5) && !(1.4442<=abs(superCluster.eta)<=1.566) && pt >= 25.0"
 options['SUPERCLUSTER_COLL']       = "reducedEgamma:reducedSuperClusters"
 options['SUPERCLUSTER_CUTS']       = "abs(eta)<2.5 && !(1.4442< abs(eta) <1.566) && et>10.0"
 options['MAXEVENTS']               = cms.untracked.int32(-1) 
 options['useAOD']                  = cms.bool(False)
-options['DOTRIGGER']               = cms.bool(True)
-options['DORECO']                  = cms.bool(True)
+options['DOTRIGGER']               = cms.bool(False)
+options['DORECO']                  = cms.bool(False)
 options['DOID']                    = cms.bool(True)
 options['OUTPUTEDMFILENAME']       = 'edmFile.root'
 options['DEBUG']                   = cms.bool(False)
@@ -39,12 +39,11 @@ inputFilesData = [
         '/store/data/Run2015D/SingleElectron/MINIAOD/05Oct2015-v1/10000/02D29CFD-2B6F-E511-AD72-00261894385A.root',
 ]
 
-# file dataset=/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3/MINIAODSIM
-# https://cmsweb.cern.ch/das/request?view=plain&limit=50&instance=prod%2Fglobal&input=file+dataset%3D%2FDYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8%2FRunIISpring15DR74-Asympt25ns_MCRUN2_74_V9-v3%2FMINIAODSIM
+# file dataset=/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM
 inputFilesMC = [
-        '/store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v3/10000/009D49A5-7314-E511-84EF-0025905A605E.root',
-        '/store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v3/10000/00C0BECF-6F14-E511-96F8-0025904B739A.root',
-        '/store/mc/RunIISpring15DR74/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/Asympt25ns_MCRUN2_74_V9-v3/10000/0260F225-7614-E511-A79F-00A0D1EE8EB4.root',
+    '/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/50000/00759690-D16E-E511-B29E-00261894382D.root',
+    '/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/50000/00E88378-6F6F-E511-9D54-001E6757EAA4.root',
+    '/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/50000/02CD8A95-736F-E511-B76E-00266CFFBF34.root',
 ]
 
 if len(varOptions.inputFiles) is 0 :
@@ -73,6 +72,8 @@ else:
     options['EVENTSToPROCESS']     = cms.untracked.VEventRange()
 
 ###################################################################
+
+process.load('Analysis.DiBosonTP.ZZIDIsoEmbedding_cff')
 
 process.sampleInfo = cms.EDAnalyzer("tnp::SampleInfoTree",
                                     vertexCollection = cms.InputTag("offlineSlimmedPrimaryVertices"),
@@ -420,19 +421,10 @@ if (options['useAOD']):
 switchOnVIDElectronIdProducer(process, dataFormat)
     
 # define which IDs we want to produce
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
-                 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
-                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff']
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff']
              
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process, idmod, setupVIDElectronSelection)
-
-process.electronZZIDIsoValueMaps = cms.EDProducer("zzElectronIdIsoProducer",
-        electrons = cms.InputTag(options['ELECTRON_COLL']),
-        mvaIdValueMap = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values"),
-        primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
-        rho = cms.InputTag("fixedGridRhoFastjetAll")
-        )
 
 process.goodElectronsPROBECutBasedVeto = cms.EDProducer("PatElectronSelectorByValueMap",
                                                         input     = cms.InputTag("goodElectrons"),
@@ -447,12 +439,6 @@ process.goodElectronsPROBECutBasedMedium = process.goodElectronsPROBECutBasedVet
 process.goodElectronsPROBECutBasedMedium.selection = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium")
 process.goodElectronsPROBECutBasedTight = process.goodElectronsPROBECutBasedVeto.clone()
 process.goodElectronsPROBECutBasedTight.selection = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight")
-process.goodElectronsPROBEZZLoose = process.goodElectronsPROBECutBasedVeto.clone()
-process.goodElectronsPROBEZZLoose.selection = cms.InputTag("electronZZIDIsoValueMaps:electronZZIDLoose")
-process.goodElectronsPROBEZZTight = process.goodElectronsPROBECutBasedVeto.clone()
-process.goodElectronsPROBEZZTight.selection = cms.InputTag("electronZZIDIsoValueMaps:electronZZIDTight")
-process.goodElectronsPROBEZZIso = process.goodElectronsPROBECutBasedVeto.clone()
-process.goodElectronsPROBEZZIso.selection = cms.InputTag("electronZZIDIsoValueMaps:electronZZIso")
 
 process.goodElectronsTAGCutBasedVeto = cms.EDProducer("PatElectronSelectorByValueMap",
                                                       input     = cms.InputTag("goodElectrons"),
@@ -474,6 +460,7 @@ process.goodElectronsTAGCutBasedTight.selection = cms.InputTag("egmGsfElectronID
 
 process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag(options['ELECTRON_COLL'])
 process.ele_sequence = cms.Sequence(
+    process.zzEmbedding +
     process.goodElectrons +
     process.egmGsfElectronIDSequence +
     process.goodElectronsPROBECutBasedVeto +
@@ -487,11 +474,7 @@ process.ele_sequence = cms.Sequence(
     process.goodElectronsTagHLT +
     process.goodElectronsProbeHLT +
     process.goodElectronsProbeMeasureHLT +
-    process.goodElectronsMeasureHLT +
-    process.electronZZIDIsoValueMaps +
-    process.goodElectronsPROBEZZLoose +
-    process.goodElectronsPROBEZZTight +
-    process.goodElectronsPROBEZZIso
+    process.goodElectronsMeasureHLT
     )
 
 process.sc_sequence = cms.Sequence(process.superClusterCands +
@@ -518,7 +501,7 @@ if (options['DOID']):
 process.mc_sequence = cms.Sequence()
 
 if (varOptions.isMC):
-    process.mc_sequence *= (process.McMatchHLT + process.McMatchTag + process.McMatchSC + process.McMatchRECO)
+    process.mc_sequence *= (process.McMatchHLT + process.McMatchTag + process.McMatchRECO)
 
 ##########################################################################
 ## TREE MAKER OPTIONS
@@ -533,13 +516,6 @@ process.GsfElectronToTrigger = cms.EDAnalyzer("TagProbeFitTreeProducer",
                                               tagProbePairs = cms.InputTag("tagTightHLT"),
                                               arbitration   = cms.string("Random2"),
                                               flags         = cms.PSet(
-                                                  passingHLTEle23    = cms.InputTag("goodElectronsMeasureHLTEle23"),
-                                                  passingHLTEle17    = cms.InputTag("goodElectronsMeasureHLTEle17"),
-                                                  passingHLTEle12    = cms.InputTag("goodElectronsMeasureHLTEle12"),
-                                                  passingHLTEle17Ele12Leg1    = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg1"),
-                                                  passingHLTEle17Ele12Leg1L1Match    = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg1L1EG15"),
-                                                  passingHLTEle17Ele12Leg2    = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg2"),
-                                                  passingHLTMu17Ele12ELeg     = cms.InputTag("goodElectronsMeasureHLTMu17Ele12ELeg"),
                                               ),
                                               allProbes     = cms.InputTag("goodElectronsProbeMeasureHLT"),
                                               )
@@ -575,9 +551,16 @@ process.GsfElectronToRECO = cms.EDAnalyzer("TagProbeFitTreeProducer",
                                                                     passingLoose  = cms.InputTag("goodElectronsPROBECutBasedLoose"),
                                                                     passingMedium = cms.InputTag("goodElectronsPROBECutBasedMedium"),
                                                                     passingTight  = cms.InputTag("goodElectronsPROBECutBasedTight"),
-                                                                    passingZZLoose =cms.InputTag("goodElectronsPROBEZZLoose"),
-                                                                    passingZZTight =cms.InputTag("goodElectronsPROBEZZTight"),
-                                                                    passingZZIso =  cms.InputTag("goodElectronsPROBEZZIso"),
+                                                                    passingZZLoose =cms.string("userFloat('HZZIDPass')"),      
+                                                                    passingZZTight =cms.string("userFloat('HZZIDPassTight')"), 
+                                                                    passingZZIso =  cms.string("userFloat('HZZIsoPass')"),     
+                                                                    passingHLTEle23    = cms.InputTag("goodElectronsMeasureHLTEle23"),
+                                                                    passingHLTEle17    = cms.InputTag("goodElectronsMeasureHLTEle17"),
+                                                                    passingHLTEle12    = cms.InputTag("goodElectronsMeasureHLTEle12"),
+                                                                    passingHLTEle17Ele12Leg1    = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg1"),
+                                                                    passingHLTEle17Ele12Leg1L1Match    = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg1L1EG15"),
+                                                                    passingHLTEle17Ele12Leg2    = cms.InputTag("goodElectronsMeasureHLTEle17Ele12Leg2"),
+                                                                    passingHLTMu17Ele12ELeg     = cms.InputTag("goodElectronsMeasureHLTMu17Ele12ELeg"),
                                                                     ),                                               
                                            allProbes     = cms.InputTag("goodElectronsProbeHLT"),
                                            )
@@ -616,14 +599,12 @@ if (varOptions.isMC):
         process.sampleInfo +
         process.hltFilter +
         process.ele_sequence + 
-        process.sc_sequence +
         process.allTagsAndProbes +
         process.pileupReweightingProducer +
         process.mc_sequence +
         process.eleVarHelper +
         process.GsfDRToNearestTauProbe + 
         process.GsfDRToNearestTauTag + 
-        process.GsfDRToNearestTauSC + 
         process.tree_sequence
         )
 else:
@@ -631,7 +612,6 @@ else:
         process.sampleInfo +
         process.hltFilter +
         process.ele_sequence + 
-        process.sc_sequence +
         process.allTagsAndProbes +
         process.mc_sequence +
         process.eleVarHelper +
