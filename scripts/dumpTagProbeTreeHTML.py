@@ -4,6 +4,8 @@ ROOT.gROOT.SetBatch(True)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import argparse, json, pickle, os, re, subprocess
 
+__gitversion__ = subprocess.check_output(["git", "describe", "--always"]).strip()
+
 # mkdir -p 
 def mkdirP(dirname) :
     import errno
@@ -61,7 +63,7 @@ def parseFitTree(baseDirectory, outputDirectory) :
             parseEfficiencyDir(effDir, effoutDir, index)
         
         index.write(HTML.footer.format(
-                version=subprocess.check_output(["git", "describe", "--always"]).strip()
+                version=__gitversion__
             ))
 
 def parseEfficiencyDir(effDir, outputDirectory, index) :
@@ -86,6 +88,7 @@ def parseEfficiencyDir(effDir, outputDirectory, index) :
 
     macroVariables = effDir.Get('variables').GetTitle()
     with open(os.path.join(outputDirectory, effName+'.C'), 'w') as fout :
+        fout.write("// Made with love by DiBosonTP version: %s\n" % __gitversion__)
         fout.write("float %s(%s) {\n" % (effName, macroVariables))
         for row in codeRows :
             fout.write(row+"\n")
