@@ -127,11 +127,9 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
     fitResults = effBinDir.Get('fitresults')
     # https://root.cern.ch/root/html/tutorials/roofit/rf607_fitresult.C.html
     effValue = fitResults.floatParsFinal().find('efficiency')
-    effBinInfo = {
-            'efficiency' : effValue.getVal(),
-            'error_hi' : effValue.getErrorHi(),
-            'error_lo' : effValue.getErrorLo()
-        }
+    dataEff = effValue.getVal()
+    dataEffErrHi = effValue.getErrorHi()
+    dataEffErrLo = effValue.getErrorLo()
 
     if effValue.getVal()+effValue.getErrorHi() > 1. :
         print "Found one! :"
@@ -152,6 +150,14 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
     mcPass = mcHist.GetBinContent(1)
     mcTotal= mcHist.GetBinContent(2)
     mcEff = mcPass/mcTotal
+    mcEffLo = ROOT.TEfficiency.ClopperPearson(int(mcTotal), int(mcPass), 0.68, False)
+    mcEffHi = ROOT.TEfficiency.ClopperPearson(int(mcTotal), int(mcPass), 0.68, True)
+
+    scaleFactor = dataEff / mcEff
+    maxSf = (dataEff+dataEffErrHi)/mcEffLo
+    scaleFactorErrHi = maxSf-scaleFactor
+    minSf = (dataEff+dataEffErrLo)/mcEffHi
+    scaleFactorErrLo = minSf-scaleFactor
 
     with open(os.path.join(outputDirectory, effBinDir.GetName()+'.parameters.txt'), 'w') as paramOut :
         #paramOut.write("# Fit chi2/dof: %f / %d\n" % (chi2, dof))
@@ -171,8 +177,9 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
 
     row = HTML.effTableRow.format(
             fitStatusColor=fitStatusColor,
-            efficiencyNice='%.4f +%.4f %.4f' % (effBinInfo['efficiency'], effBinInfo['error_hi'], effBinInfo['error_lo']),
+            efficiencyNice='%.4f +%.4f %.4f' % (dataEff, dataEffErrHi, dataEffErrLo),
             mcEfficiency='%.4f (%d/%d)' % (mcEff, mcPass, mcTotal),
+            scaleFactor='%.4f +%.4f %.4f' % (scaleFactor, scaleFactorErrHi, scaleFactorErrLo),
             effName=effBinDir.GetDirectory('..').GetName(),
             binName=binName,
             binNameNice=re.sub('__pdfSignal.*', '', binName),
@@ -180,7 +187,7 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
             nll=nll,
             fitStatus=':'.join(['%d' % fitResults.statusCodeHistory(i) for i in range(fitResults.numStatusHistory())]),
         )
-    row += '''<tr><td colspan="6" style="text-align: center;"><img src="{effName}/{binName}_small.png"></td></tr>'''.format(
+    row += '''<tr><td colspan="7" style="text-align: center;"><img src="{effName}/{binName}_small.png"></td></tr>'''.format(
             effName=effBinDir.GetDirectory('..').GetName(),
             binName=binName,
         )
@@ -226,8 +233,9 @@ class HTML :
     <table>
         <tr style="background: #cccccc">
             <td>Bin name</td>
-            <td>Data Value</td>
-            <td>MC Value</td>
+            <td>Data Efficiency</td>
+            <td>MC Cut&Count</td>
+            <td>Scale Factor</td>
             <td>Data fit status</td>
             <td>Data fit signal yield</td>
             <td>NLL</td>
@@ -242,6 +250,7 @@ class HTML :
             <td><a href="{effName}/{binName}.png">{binNameNice}</a></td>
             <td><a href="{effName}/{binName}.parameters.txt">{efficiencyNice}</a></td>
             <td>{mcEfficiency}</td>
+            <td>{scaleFactor}</td>
             <td>{fitStatus}</td>
             <td>{numSignalAll:.0f}</td>
             <td>{nll:.0f}</td>
