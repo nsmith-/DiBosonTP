@@ -7,7 +7,7 @@ from Analysis.DiBosonTP.PassFailSimulFitter import PassFailSimulFitter
 pdfDefData = [
         "RooHistPdf::mcTemplatePass(mass,mcDataPass)",
         "RooHistPdf::mcTemplateFail(mass,mcDataFail)",
-        'Gaussian::signalRes(mass,meanSmearing[1.0,-1.0,2.0],sigmaSmearing[0.5,0.07,3.0])',
+        'Gaussian::signalRes(mass,meanSmearing[1.0,-1.0,2.0],sigmaSmearing[0.5,0.28,3.0])', # sigma > 1/sqrt(12)
         #'Gaussian::signalResFail(mass,meanSmearing              ,sigmaSmearing              )',
         'RooBernstein::backgroundPass(mass, {a0[10,0,50],a1[1,0,50],a2[1,0,50],a3[1,0,50]})',
         'RooBernstein::backgroundFail(mass, {b0[10,0,50],b1[1,0,50],b2[1,0,50],b3[1,0,50]})',

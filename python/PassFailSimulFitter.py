@@ -62,9 +62,11 @@ class PassFailSimulFitter :
         data = w.data(dataName)
 
         # Initialize some parameters
-        signalFractionPassing = 0.9
         nPass = data.sumEntries('decision==decision::Passed')
         nFail = data.sumEntries('decision==decision::Failed')
+        nPassCenter = data.sumEntries('decision==decision::Passed && mass>80 && mass<100')
+        nPassSides   = data.sumEntries('decision==decision::Passed && mass<80 && mass>100')
+        signalFractionPassing = (nPassCenter-nPassSides/2)/nPass
         initialEff = w.var('efficiency').getVal()
         nSignal = nPass*signalFractionPassing/initialEff
         w.var('numSignalAll').setVal(nSignal)
@@ -78,7 +80,7 @@ class PassFailSimulFitter :
             rf.Save(True),
             rf.Minos(minosVars),
             rf.Verbose(False),
-            rf.PrintLevel(-1),
+            rf.PrintLevel(0),
             rf.Minimizer("Minuit2","Migrad"),
         ]
         result = pdf.fitTo(data, *args)
