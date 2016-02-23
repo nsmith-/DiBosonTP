@@ -22,18 +22,38 @@ class PassFailSimulFitter :
         for line in pdfDefinition :
             self.workspace.factory(line)
 
-    def setData(self, passed, failed) :
+    def setData(self, name, passed, failed, separate = False) :
         # TODO: check passing failing hists for consistency
         nPass = passed.Integral()
         nFail = failed.Integral()
         if nPass == 0 or nFail == 0 :
             print 'WARNING: No passing or failing data!'
-        m = ROOT.std.map('string, TH1*')()
-        # const string: https://root.cern.ch/phpBB3/viewtopic.php?f=15&t=16882&start=15#p86985
-        m.insert(ROOT.std.pair('const string, TH1*')('Passed', passed))
-        m.insert(ROOT.std.pair('const string, TH1*')('Failed', failed))
-        data = ROOT.RooDataHist('data', 'dataset', ROOT.RooArgList(self._fitVar), self.workspace.cat('decision'), m)
-        self._wsimport(data)
+        if separate :
+            dataPass = ROOT.RooDataHist(name+'Pass', name+' Passing bin', ROOT.RooArgList(self._fitVar), passed)
+            self._wsimport(dataPass)
+            dataFail = ROOT.RooDataHist(name+'Fail', name+' Failing bin', ROOT.RooArgList(self._fitVar), failed)
+            self._wsimport(dataFail)
+        else :
+            m = ROOT.std.map('string, TH1*')()
+            # const string: https://root.cern.ch/phpBB3/viewtopic.php?f=15&t=16882&start=15#p86985
+            m.insert(ROOT.std.pair('const string, TH1*')('Passed', passed))
+            m.insert(ROOT.std.pair('const string, TH1*')('Failed', failed))
+            data = ROOT.RooDataHist(name, name, ROOT.RooArgList(self._fitVar), self.workspace.cat('decision'), m)
+            self._wsimport(data)
+
+    def addDataFromTree(self, tree, dataName, allProbeCondition, passingProbeCondition, **kwargs) :
+        weightVariable = kwargs.pop('weightVariable', 'totWeight')
+        separatePassFail = kwargs.pop('separatePassFail', False)
+        varMin = self._fitVar.getMin()
+        varMax = self._fitVar.getMax()
+        varBins = self._fitVar.getBins()
+        hpass = ROOT.TH1F(dataName+'_passed_probes', '', varBins, varMin, varMax)
+        hfail = hpass.Clone(dataName+'_failed_probes')
+        if type(allProbeCondition) is list :
+            allProbeCondition = '&&'.join(allProbeCondition)
+        tree.Draw('mass >> %s_passed_probes' % dataName, '%s*(%s)*(%s)' % (weightVariable, allProbeCondition, passingProbeCondition), 'goff')
+        tree.Draw('mass >> %s_failed_probes' % dataName, '%s*(%s)*!(%s)' % (weightVariable, allProbeCondition, passingProbeCondition), 'goff')
+        self.setData(dataName, hpass, hfail, separatePassFail)
 
     def fit(self, pdfName, dataName) :
         w = self.workspace

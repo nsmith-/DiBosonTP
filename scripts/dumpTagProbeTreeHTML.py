@@ -23,6 +23,8 @@ def rootFileType(string) :
 def get2DPlot(effDir) :
     canvas = None
     plotsDir = effDir.Get('fit_eff_plots')
+    if not plotsDir :
+        return
     for key in plotsDir.GetListOfKeys() :
         if re.match('probe_.*abseta.*_probe_.*_PLOT.*', key.GetName()) :
             canvas = key.ReadObj()
@@ -65,6 +67,7 @@ def parseFitTree(baseDirectory, outputDirectory) :
 def parseEfficiencyDir(effDir, outputDirectory, index) :
     effName = effDir.GetName()
     rows = ''
+    codeRows = []
 
     for effBinDir in fitSubDirs(effDir) :
         binName = effBinDir.GetName()
@@ -72,16 +75,25 @@ def parseEfficiencyDir(effDir, outputDirectory, index) :
         if not effBinDir.Get('fitresults') :
             continue
 
-        row = parseEfficiencyBin(effBinDir, outputDirectory)
+        (row, code) = parseEfficiencyBin(effBinDir, outputDirectory)
+        codeRows.append(code)
         rows += row
 
     plot = get2DPlot(effDir)
     plotName = 'efficiency2DPtEta.png'
-    plot.Print(os.path.join(outputDirectory, plotName))
+    if plot :
+        plot.Print(os.path.join(outputDirectory, plotName))
+
+    macroVariables = effDir.Get('variables').GetTitle()
+    with open(os.path.join(outputDirectory, effName+'.C'), 'w') as fout :
+        fout.write("float %s(%s) {\n" % (effName, macroVariables))
+        for row in codeRows :
+            fout.write(row+"\n")
+        fout.write("    return 1.; // Default\n")
+        fout.write("}\n")
 
     index.write(HTML.effDirItem.format(
         effName=effName,
-        effDefinition='?',
         eff2DPtEtaImage=os.path.join(effName, plotName),
         tableRows=rows
     ))
@@ -123,15 +135,23 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
         effValue.Print()
 
     canvas = effBinDir.Get('fit_canvas')
-    canvas.Print(os.path.join(outputDirectory, effBinDir.GetName()+'.png'))
-
     passing = canvas.FindObject('fit_canvas_1')
-    (chi2, dof) = makeChi2(passing, fitResults.floatParsFinal().getSize())
-    (chi2roo, dofroo) = makeChi2_roofit(passing, fitResults.floatParsFinal().getSize())
+    firstPlot = passing.GetListOfPrimitives()[0]
+    firstPlot.SetTitle('Passing '+effBinDir.GetName())
+    fullPlot = os.path.join(outputDirectory, effBinDir.GetName()+'.png')
+    canvas.Print(fullPlot)
+    smallPlot = fullPlot.replace('.png','_small.png')
+    subprocess.call(['convert', '-gravity', 'north', '-crop', '100%x50%', fullPlot, smallPlot])
+
+    nll = fitResults.minNll()
+
+    mcHist = effBinDir.Get('mc_cutCount')
+    mcPass = mcHist.GetBinContent(1)
+    mcTotal= mcHist.GetBinContent(2)
+    mcEff = mcPass/mcTotal
 
     with open(os.path.join(outputDirectory, effBinDir.GetName()+'.parameters.txt'), 'w') as paramOut :
-        paramOut.write("# Fit chi2/dof: %f / %d\n" % (chi2, dof))
-        paramOut.write("# Fit chi2/dof (roofit): %f / %d\n" % (chi2roo, dofroo))
+        #paramOut.write("# Fit chi2/dof: %f / %d\n" % (chi2, dof))
         params = fitResults.floatParsFinal()
         for p in xrange(params.getSize()):
             myPar = params.at(p)
@@ -141,7 +161,7 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
     thresholds = [1., 5., 10., 100.]
     fitStatusColor = '#00ff00' 
     for i in range(4) :
-        if chi2/dof > thresholds[i] :
+        if nll > thresholds[i] :
             fitStatusColor = colors[i]
 
     binName = effBinDir.GetName()
@@ -149,16 +169,22 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
     row = HTML.effTableRow.format(
             fitStatusColor=fitStatusColor,
             efficiencyNice='%.4f +%.4f %.4f' % (effBinInfo['efficiency'], effBinInfo['error_hi'], effBinInfo['error_lo']),
+            mcEfficiency='%.4f (%d/%d)' % (mcEff, mcPass, mcTotal),
             effName=effBinDir.GetDirectory('..').GetName(),
             binName=binName,
             binNameNice=re.sub('__pdfSignal.*', '', binName),
             numSignalAll=fitResults.floatParsFinal().find('numSignalAll').getVal(),
-            chi2='%.0f / %d' % (chi2, dof),
-            chi2roo='%.0f / %d' % (chi2roo, dofroo),
-            fitStatus='-'.join(['%d' % fitResults.statusCodeHistory(i) for i in range(fitResults.numStatusHistory())]),
+            nll=nll,
+            fitStatus=':'.join(['%d' % fitResults.statusCodeHistory(i) for i in range(fitResults.numStatusHistory())]),
+        )
+    row += '''<tr><td colspan="6" style="text-align: center;"><img src="{effName}/{binName}_small.png"></td></tr>'''.format(
+            effName=effBinDir.GetDirectory('..').GetName(),
+            binName=binName,
         )
 
-    return row
+    codeRow = '    '+effBinDir.Get('cutString').GetTitle()
+
+    return (row, codeRow)
 
 def subDirs(dir) :
     for key in dir.GetListOfKeys() :
@@ -167,7 +193,7 @@ def subDirs(dir) :
 
 def fitSubDirs(dir) :
     for key in dir.GetListOfKeys() :
-        if key.IsFolder() and re.match('probe.*_bin\d__probe.*_bin\d__.*pdfSignal.*', key.GetName()) :
+        if key.IsFolder() :
             yield key.ReadObj()
 
 # HTML Templates
@@ -193,27 +219,29 @@ class HTML :
 
     effDirItem = '''<div class="effResult">
     <h3>Efficiency results for {effName}</h3><br />
-    Definition: <span class="code">{effDefinition}</span><br />
+    Function: <a href="{effName}/{effName}.C">{effName}.C</a><br />
     <table>
         <tr style="background: #cccccc">
             <td>Bin name</td>
-            <td>Value</td>
-            <td>Fit status</td>
-            <td>Fit signal yield</td>
-            <td>Chi2</td>
+            <td>Data Value</td>
+            <td>MC Value</td>
+            <td>Data fit status</td>
+            <td>Data fit signal yield</td>
+            <td>NLL</td>
         </tr>
         {tableRows}
     </table>
-    <img src="{eff2DPtEtaImage}" /><br />
+    <!-- <img src="{eff2DPtEtaImage}" /><br /> -->
 </div>'''
 
     effTableRow = '''
         <tr style="background: {fitStatusColor}">
             <td><a href="{effName}/{binName}.png">{binNameNice}</a></td>
             <td><a href="{effName}/{binName}.parameters.txt">{efficiencyNice}</a></td>
+            <td>{mcEfficiency}</td>
             <td>{fitStatus}</td>
             <td>{numSignalAll:.0f}</td>
-            <td>{chi2} (Roo: {chi2roo})</td>
+            <td>{nll:.0f}</td>
         </tr>'''
 
 
@@ -225,20 +253,17 @@ Generated using DiBosonTP version {version}<br />
 
 def main() :
     parser = argparse.ArgumentParser(description='Dumps fit info generated by TagProbeFitTreeAnalyzer into HTML summary')
-    parser.add_argument('--mc', help='MC fit tree name', type=rootFileType)
     parser.add_argument('--data', help='Data fit tree name', type=rootFileType)
     parser.add_argument('--output', '-o', help='Directory name for output', required=True)
     parser.add_argument('--input', '-i', help='Directory name in root files to load', default='muonEffs')
     args = parser.parse_args()
     
     ROOT.gStyle.SetPaintTextFormat('0.4f')
+    ROOT.gStyle.SetOptTitle(True)
 
     mkdirP(args.output)
 
-    if args.mc :
-        parseFitTree(args.mc.Get(args.input), os.path.join(args.output, 'mc'))
-    if args.data :
-        parseFitTree(args.data.Get(args.input), os.path.join(args.output, 'data'))
+    parseFitTree(args.data.Get(args.input), args.output)
 
 if __name__ == '__main__' :
     main()
