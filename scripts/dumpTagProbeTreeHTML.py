@@ -89,7 +89,15 @@ def parseEfficiencyDir(effDir, outputDirectory, index) :
     macroVariables = effDir.Get('variables').GetTitle()
     with open(os.path.join(outputDirectory, effName+'.C'), 'w') as fout :
         fout.write("// Made with love by DiBosonTP version: %s\n" % __gitversion__)
-        fout.write("float %s(%s) {\n" % (effName, macroVariables))
+        fout.write("""
+enum Variation {
+    CENTRAL,
+    STAT_UP,
+    STAT_DOWN,
+    SYST_ALT_TEMPL
+};
+""")
+        fout.write("float %s(%s, Variation variation) {\n" % (effName, macroVariables))
         for row in codeRows :
             fout.write(row+"\n")
         fout.write("    return 1.; // Default\n")
@@ -192,7 +200,7 @@ def parseEfficiencyBin(effBinDir, outputDirectory) :
             binName=binName,
         )
 
-    codeRow = '    '+effBinDir.Get('cutString').GetTitle()
+    codeRow = effBinDir.Get('cutString').GetTitle()
 
     return (row, codeRow)
 

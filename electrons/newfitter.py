@@ -7,18 +7,25 @@ from Analysis.DiBosonTP.PassFailSimulFitter import PassFailSimulFitter
 pdfDefData = [
         "RooHistPdf::mcTemplatePass(mass,mcDataPass)",
         "RooHistPdf::mcTemplateFail(mass,mcDataFail)",
+        "RooHistPdf::mcAltTemplatePass(mass,mcAltDataPass)",
+        "RooHistPdf::mcAltTemplateFail(mass,mcAltDataFail)",
         'Gaussian::signalRes(mass,meanSmearing[1.0,-1.0,2.0],sigmaSmearing[0.5,0.28,3.0])', # sigma > 1/sqrt(12)
         #'Gaussian::signalResFail(mass,meanSmearing              ,sigmaSmearing              )',
         'RooBernstein::backgroundPass(mass, {a0[10,0,50],a1[1,0,50],a2[1,0,50],a3[1,0,50]})',
         'RooBernstein::backgroundFail(mass, {b0[10,0,50],b1[1,0,50],b2[1,0,50],b3[1,0,50]})',
         'FCONV::signalPass(mass, mcTemplatePass, signalRes)',
         'FCONV::signalFail(mass, mcTemplateFail, signalRes)',
+        'FCONV::signalAltPass(mass, mcAltTemplatePass, signalRes)',
+        'FCONV::signalAltFail(mass, mcAltTemplateFail, signalRes)',
         'efficiency[0.9,0,1]',
         "expr::numSignalPass('efficiency*numSignalAll', efficiency, numSignalAll[10.,10000000000])",
         "expr::numSignalFail('(1-efficiency)*numSignalAll', efficiency, numSignalAll)",
         "SUM::pdfPass(numSignalPass*signalPass, numBackgroundPass[0.,1000000000]*backgroundPass)",
         "SUM::pdfFail(numSignalFail*signalFail, numBackgroundFail[0.,1000000000]*backgroundFail)",
         "SIMUL::simPdf(decision, Passed=pdfPass, Failed=pdfFail)",
+        "SUM::pdfAltPass(numSignalPass*signalAltPass, numBackgroundPass[0.,1000000000]*backgroundPass)",
+        "SUM::pdfAltFail(numSignalFail*signalAltFail, numBackgroundFail[0.,1000000000]*backgroundFail)",
+        "SIMUL::simAltPdf(decision, Passed=pdfAltPass, Failed=pdfAltFail)",
         ]
 
 # DEMO
@@ -58,6 +65,9 @@ def main() :
     fmc = ROOT.TFile.Open('TnPTree_mc.root')
     tmc = fmc.Get('GsfElectronToRECO/fitter_tree')
 
+    fmcAlt = ROOT.TFile.Open('TnPTree_mcLO.root')
+    tmcAlt = fmcAlt.Get('GsfElectronToRECO/fitter_tree')
+
     fdata = ROOT.TFile.Open('TnPTree_data.root')
     tdata = fdata.Get('GsfElectronToRECO/fitter_tree')
 
@@ -65,25 +75,50 @@ def main() :
         ROOT.gDirectory.mkdir(name).cd()
         fitter = PassFailSimulFitter(name, fitVariable)
         fitter.addDataFromTree(tmc, 'mcData', allProbeCondition+['mcTrue'], passingProbeCondition, separatePassFail = True)
+        fitter.addDataFromTree(tmcAlt, 'mcAltData', allProbeCondition+['mcTrue'], passingProbeCondition, separatePassFail = True)
         nMCPass = fitter.workspace.data('mcDataPass').sumEntries()
         nMCFail = fitter.workspace.data('mcDataFail').sumEntries()
         mcEff = nMCPass/(nMCPass+nMCFail)
+        mcEffLo = ROOT.TEfficiency.ClopperPearson(int(nMCPass+nMCFail), int(nMCPass), 0.68, False)
+        mcEffHi = ROOT.TEfficiency.ClopperPearson(int(nMCPass+nMCFail), int(nMCPass), 0.68, True)
+
         h=ROOT.TH1F('mc_cutCount', 'Cut & Count', 2, 0, 2)
         h.SetBinContent(1, nMCPass)
         h.SetBinContent(2, nMCPass+nMCFail)
         fitter.addDataFromTree(tdata, 'data', allProbeCondition, passingProbeCondition)
         fitter.setPdf(pdfDefData)
         res = fitter.fit('simPdf', 'data')
-        dataEff = res.floatParsFinal().find('efficiency').getVal()
+
+        effValue = res.floatParsFinal().find('efficiency')
+        dataEff = effValue.getVal()
+        dataEffErrHi = effValue.getErrorHi()
+        dataEffErrLo = effValue.getErrorLo()
+        scaleFactor = dataEff / mcEff
+        maxSf = (dataEff+dataEffErrHi)/mcEffLo
+        minSf = (dataEff+dataEffErrLo)/mcEffHi
+
         res.SetName('fitresults')
         c = fitter.drawFitCanvas('simPdf', 'data')
         c.Write()
         h.Write()
         res.Write()
+        resAlt = fitter.fit('simAltPdf', 'data')
+        dataAltEff = resAlt.floatParsFinal().find('efficiency').getVal()
+        resAlt.SetName('fitresults_systAltTemplate')
+        resAlt.Write()
         fitter.workspace.Write()
         print name, ': Data=%.2f, MC=%.2f, Ratio=%.2f' % (dataEff, mcEff, dataEff/mcEff)
+        print name, ': Alt =%.2f' % (dataAltEff)
         condition = ' && '.join(allProbeCondition+[passingProbeCondition])
-        cutString = 'if ( %s ) return %f;' % (condition, dataEff/mcEff)
+        variations = {
+                'CENTRAL'  : scaleFactor,
+                'STAT_UP'  : maxSf,
+                'STAT_DOWN': minSf,
+                'SYST_ALT_TEMPL' : dataAltEff / mcEff,
+                }
+        cutString = ''
+        for varName, value in variations.items() :
+            cutString += '    if ( variation == %s && (%s) ) return %f;\n' % (varName, condition, value)
         print cutString
         ROOT.TNamed('cutString', cutString).Write()
         print
