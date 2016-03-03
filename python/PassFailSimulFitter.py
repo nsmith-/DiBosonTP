@@ -2,8 +2,23 @@
 import ROOT
 ROOT.gROOT.SetBatch(True)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
+import math
+import re
+
+def rooIter(coll) :
+    # PyROOT hasn't iterator-ized the RooFit collections
+    if not coll.InheritsFrom(ROOT.RooAbsCollection.Class()) :
+        raise Exception("Object is not iterable:\n"+repr(coll))
+    i = coll.iterator()
+    obj = i.Next()
+    while obj :
+        yield obj
+        obj = i.Next()
 
 class PassFailSimulFitter :
+    _bkgPassRE = re.compile('background.*Pass.*')
+    _bkgFailRE = re.compile('background.*Fail.*')
+
     def _wsimport(self, *args) :
         # getattr since import is special in python
         # NB RooWorkspace clones object
@@ -21,6 +36,7 @@ class PassFailSimulFitter :
     def setPdf(self, pdfDefinition) :
         for line in pdfDefinition :
             self.workspace.factory(line)
+        self.workspace.saveSnapshot('setPdfParameters', self.workspace.components())
 
     def setData(self, name, passed, failed, separate = False) :
         # TODO: check passing failing hists for consistency
@@ -55,25 +71,36 @@ class PassFailSimulFitter :
         tree.Draw('mass >> %s_failed_probes' % dataName, '%s*(%s)*!(%s)' % (weightVariable, allProbeCondition, passingProbeCondition), 'goff')
         self.setData(dataName, hpass, hfail, separatePassFail)
 
-    def fit(self, pdfName, dataName) :
+    def fit(self, pdfName, dataName, reInitializeParameters = True) :
         w = self.workspace
         rf = ROOT.RooFit
         pdf = w.pdf(pdfName)
         data = w.data(dataName)
 
+        #if reInitializeParameters :
+        #    w.loadSnapshot('setPdfParameters')
+
         # Initialize some parameters
         nPass = data.sumEntries('decision==decision::Passed')
         nFail = data.sumEntries('decision==decision::Failed')
+        # Crude estimate of passing signal purity
+        # TODO: relies on fitVar being Z mass
         nPassCenter = data.sumEntries('decision==decision::Passed && mass>80 && mass<100')
         nPassSides   = data.sumEntries('decision==decision::Passed && mass<80 && mass>100')
         signalFractionPassing = (nPassCenter-nPassSides/2)/nPass
+
         initialEff = w.var('efficiency').getVal()
-        nSignal = nPass*signalFractionPassing/initialEff
+        nSignal = min(nPass*signalFractionPassing/initialEff, nPass+nFail)
         w.var('numSignalAll').setVal(nSignal)
+        # Signal cannot be more than total data entries
+        # but we leave wiggle room so that the uncertainty on low-background fits is still ok
+        w.var('numSignalAll').setMax(nPass+nFail+math.sqrt(nPass+nFail))
         if w.var('numBackgroundPass') :
+            # Similarly, background cannot be more than total pass/fail
             w.var('numBackgroundPass').setVal(nPass-nSignal*initialEff)
-            w.var('numBackgroundFail').setVal(nPass-max(nSignal*(1-initialEff), nFail))
-        w.saveSnapshot('preFit', w.components())
+            w.var('numBackgroundPass').setMax(nPass+math.sqrt(nPass))
+            w.var('numBackgroundFail').setVal(nFail-min(nSignal*(1-initialEff), nFail))
+            w.var('numBackgroundFail').setMax(nFail+math.sqrt(nFail))
 
         minosVars = ROOT.RooArgSet(w.var('efficiency'))
         args = [
@@ -84,10 +111,11 @@ class PassFailSimulFitter :
             rf.Minimizer("Minuit2","Migrad"),
         ]
         result = pdf.fitTo(data, *args)
-        w.saveSnapshot('postFit', w.components())
+        # Make title more computer-friendly
+        result.SetTitle('%s;%s' % (pdfName, dataName))
         return result
 
-    def drawFitCanvas(self, pdfName, dataName) :
+    def drawFitCanvas(self, result) :
         w = self.workspace
         fitVar = self._fitVar
         rf = ROOT.RooFit
@@ -96,7 +124,15 @@ class PassFailSimulFitter :
         failFrame = fitVar.frame(rf.Name('Failing'), rf.Title('Failing Probes'))
         allFrame  = fitVar.frame(rf.Name('All'),     rf.Title('All Probes'))
 
+        for p in rooIter(result.floatParsFinal()) :
+            w.var(p.GetName()).setVal(p.getVal())
+
+        (pdfName, dataName) = result.GetTitle().split(';')
         pdf = w.pdf(pdfName)
+        pdfComponents = [c.GetName() for c in rooIter(pdf.getComponents())]
+        bkgPassComponent = filter(self._bkgPassRE.match, pdfComponents).pop(0)
+        bkgFailComponent = filter(self._bkgFailRE.match, pdfComponents).pop(0)
+        bkgComponents = bkgPassComponent+','+bkgFailComponent
         data = w.data(dataName)
         datapass = data.reduce(rf.Cut('decision==decision::Passed'))
         datafail = data.reduce(rf.Cut('decision==decision::Failed'))
@@ -104,17 +140,17 @@ class PassFailSimulFitter :
         datapass.plotOn(passFrame)
         pdf.plotOn(passFrame, rf.Slice(w.cat('decision'), 'Passed'), rf.ProjWData(datapass), rf.LineColor(ROOT.kGreen))
         if w.pdf('backgroundPass') :
-            pdf.plotOn(passFrame, rf.Slice(w.cat('decision'), 'Passed'), rf.ProjWData(datapass), rf.LineColor(ROOT.kGreen), rf.Components('backgroundPass'), rf.LineStyle(ROOT.kDashed))
+            pdf.plotOn(passFrame, rf.Slice(w.cat('decision'), 'Passed'), rf.ProjWData(datapass), rf.LineColor(ROOT.kGreen), rf.Components(bkgPassComponent), rf.LineStyle(ROOT.kDashed))
 
         datafail.plotOn(failFrame)
         pdf.plotOn(failFrame, rf.Slice(w.cat('decision'), 'Failed'), rf.ProjWData(datafail), rf.LineColor(ROOT.kRed))
         if w.pdf('backgroundFail') :
-            pdf.plotOn(failFrame, rf.Slice(w.cat('decision'), 'Failed'), rf.ProjWData(datafail), rf.LineColor(ROOT.kRed), rf.Components('backgroundFail'), rf.LineStyle(ROOT.kDashed))
+            pdf.plotOn(failFrame, rf.Slice(w.cat('decision'), 'Failed'), rf.ProjWData(datafail), rf.LineColor(ROOT.kRed), rf.Components(bkgFailComponent), rf.LineStyle(ROOT.kDashed))
 
         data.plotOn(allFrame)
         pdf.plotOn(allFrame, rf.ProjWData(data))
         if w.pdf('backgroundPass') :
-            pdf.plotOn(allFrame, rf.ProjWData(data), rf.LineColor(ROOT.kBlue), rf.Components('backgroundPass,backgroundFail'), rf.LineStyle(ROOT.kDashed))
+            pdf.plotOn(allFrame, rf.ProjWData(data), rf.LineColor(ROOT.kBlue), rf.Components(bkgComponents), rf.LineStyle(ROOT.kDashed))
 
         # infoFrame is a placeholder
         infoFrame = fitVar.frame(rf.Name("Fit Results"), rf.Title("Fit Results"))

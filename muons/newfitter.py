@@ -4,63 +4,12 @@ ROOT.gROOT.SetBatch(True)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 from Analysis.DiBosonTP.PassFailSimulFitter import PassFailSimulFitter
 
-pdfDefData = [
-        "RooHistPdf::mcTemplatePass(mass,mcDataPass)",
-        "RooHistPdf::mcTemplateFail(mass,mcDataFail)",
-        "RooHistPdf::mcAltTemplatePass(mass,mcAltDataPass)",
-        "RooHistPdf::mcAltTemplateFail(mass,mcAltDataFail)",
-        'Gaussian::signalRes(mass,meanSmearing[1.0,-1.0,2.0],sigmaSmearing[0.5,0.28,3.0])', # sigma > 1/sqrt(12)
-        #'Gaussian::signalResFail(mass,meanSmearing              ,sigmaSmearing              )',
-        'RooBernstein::backgroundPass(mass, {a0[10,0,50],a1[1,0,50],a2[1,0,50],a3[1,0,50]})',
-        'RooBernstein::backgroundFail(mass, {b0[10,0,50],b1[1,0,50],b2[1,0,50],b3[1,0,50]})',
-        'FCONV::signalPass(mass, mcTemplatePass, signalRes)',
-        'FCONV::signalFail(mass, mcTemplateFail, signalRes)',
-        'FCONV::signalAltPass(mass, mcAltTemplatePass, signalRes)',
-        'FCONV::signalAltFail(mass, mcAltTemplateFail, signalRes)',
-        'efficiency[0.9,0,1]',
-        "expr::numSignalPass('efficiency*numSignalAll', efficiency, numSignalAll[10.,10000000000])",
-        "expr::numSignalFail('(1-efficiency)*numSignalAll', efficiency, numSignalAll)",
-        "SUM::pdfPass(numSignalPass*signalPass, numBackgroundPass[0.,1000000000]*backgroundPass)",
-        "SUM::pdfFail(numSignalFail*signalFail, numBackgroundFail[0.,1000000000]*backgroundFail)",
-        "SIMUL::simPdf(decision, Passed=pdfPass, Failed=pdfFail)",
-        "SUM::pdfAltPass(numSignalPass*signalAltPass, numBackgroundPass[0.,1000000000]*backgroundPass)",
-        "SUM::pdfAltFail(numSignalFail*signalAltFail, numBackgroundFail[0.,1000000000]*backgroundFail)",
-        "SIMUL::simAltPdf(decision, Passed=pdfAltPass, Failed=pdfAltFail)",
-        ]
-
-# DEMO
-pdfDef = [
-        'RooBreitWigner::signalPhy(mass, 91, 2.5)',
-        #'Gaussian::signalResPass(mass,meanSmearing[1.0,-1.0,2.0],sigmaSmearing[0.5,0.07,3.0])',
-        #'Gaussian::signalResFail(mass,meanSmearing              ,sigmaSmearing              )',
-        "RooCBExGaussShape::signalResPass(mass,meanP[-0.0,-5.000,5.000],sigmaP[0.956,0.00,15.000],alphaP[0.999, 0.0,50.0],nP[1.405,0.000,50.000],sigmaP_2[1.000,0.500,15.00])",
-        "RooCBExGaussShape::signalResFail(mass,meanF[-0.0,-5.000,5.000],sigmaF[3.331,0.00,15.000],alphaF[1.586, 0.0,50.0],nF[0.464,0.000,20.00], sigmaF_2[1.675,0.500,12.000])",
-        'FCONV::signalPass(mass, signalPhy, signalResPass)',
-        'FCONV::signalFail(mass, signalPhy, signalResFail)',
-        'Gaussian::signalSideband(mass, sbMean[75,60,90], sbSigma[5,3,20])',
-        'sigSidebandFracPass[0.001,0,1]',
-        'sigSidebandFracFail[0.001,0,1]',
-        'efficiency[0.9,0,1]',
-        "expr::numSignalPass('efficiency*numSignalAll', efficiency, numSignalAll[10.,10000000000])",
-        "expr::numSignalPassPeak('(1-sigSidebandFracPass)*numSignalPass', sigSidebandFracPass, numSignalPass)",
-        "expr::numSignalPassSB('sigSidebandFracPass*numSignalPass', sigSidebandFracPass, numSignalPass)",
-        "expr::numSignalFail('(1-efficiency)*numSignalAll', efficiency, numSignalAll)",
-        "expr::numSignalFailPeak('(1-sigSidebandFracFail)*numSignalFail', sigSidebandFracFail, numSignalFail)",
-        "expr::numSignalFailSB('sigSidebandFracFail*numSignalFail', sigSidebandFracFail, numSignalFail)",
-        'SUM::pdfPass(numSignalPassPeak*signalPass, numSignalPassSB*signalSideband)',
-        'SUM::pdfFail(numSignalFailPeak*signalFail, numSignalFailSB*signalSideband)',
-        "SIMUL::simPdf(decision, Passed=pdfPass, Failed=pdfFail)",
-        'RooBernstein::backgroundPass(mass, {a0[10,0,50],a1[1,0,50],a2[1,0,50],a3[1,0,50]})',
-        'RooBernstein::backgroundFail(mass, {b0[10,0,50],b1[1,0,50],b2[1,0,50],b3[1,0,50]})',
-        "RooHistPdf::mcTemplatePass(mass,mcDataPass)",
-        "RooHistPdf::mcTemplateFail(mass,mcDataFail)",
-        ]
-
 def main() :
     fitVariable = ROOT.RooRealVar('mass', 'TP Pair Mass', 60, 120, 'GeV')
     fitVariable.setBins(60)
 
     ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.ERROR)
+    ROOT.Math.MinimizerOptions.SetDefaultTolerance(1.e-2) # default is 1.e-2
 
     fmc = ROOT.TFile.Open('TnPTree_mc.root')
     tmc = fmc.Get('muonEffs/fitter_tree')
@@ -71,24 +20,41 @@ def main() :
     fdata = ROOT.TFile.Open('TnPTree_data.root')
     tdata = fdata.Get('muonEffs/fitter_tree')
 
+    mcTruthCondition = ['mcTrue', 'mc_probe_isPromptFinalState']
+
+    pdfDefinition = []
+    with open('pdfDefinition.txt') as defFile :
+        for line in defFile :
+            line = line.strip()
+            if len(line) == 0 or line[0] is '#' :
+                continue
+            pdfDefinition.append(line)
+
+
+    def statusInfo(fitResults) :
+        fitStatus=':'.join(['% d' % fitResults.statusCodeHistory(i) for i in range(fitResults.numStatusHistory())]),
+        return fitStatus
+
     def fitBin(name, allProbeCondition, passingProbeCondition) :
         ROOT.gDirectory.mkdir(name).cd()
         fitter = PassFailSimulFitter(name, fitVariable)
-        fitter.addDataFromTree(tmc, 'mcData', allProbeCondition+['mcTrue'], passingProbeCondition, separatePassFail = True)
-        fitter.addDataFromTree(tmcAlt, 'mcAltData', allProbeCondition+['mcTrue'], passingProbeCondition, separatePassFail = True)
+        fitter.addDataFromTree(tmc, 'mcData', allProbeCondition+mcTruthCondition, passingProbeCondition, separatePassFail = True)
+        fitter.addDataFromTree(tmcAlt, 'mcAltData', allProbeCondition+mcTruthCondition, passingProbeCondition, separatePassFail = True)
         nMCPass = fitter.workspace.data('mcDataPass').sumEntries()
         nMCFail = fitter.workspace.data('mcDataFail').sumEntries()
         mcEff = nMCPass/(nMCPass+nMCFail)
         mcEffLo = ROOT.TEfficiency.ClopperPearson(int(nMCPass+nMCFail), int(nMCPass), 0.68, False)
         mcEffHi = ROOT.TEfficiency.ClopperPearson(int(nMCPass+nMCFail), int(nMCPass), 0.68, True)
-
         h=ROOT.TH1F('mc_cutCount', 'Cut & Count', 2, 0, 2)
         h.SetBinContent(1, nMCPass)
         h.SetBinContent(2, nMCPass+nMCFail)
-        fitter.addDataFromTree(tdata, 'data', allProbeCondition, passingProbeCondition)
-        fitter.setPdf(pdfDefData)
-        res = fitter.fit('simPdf', 'data')
 
+        # All MC templates must be set up by now
+        fitter.setPdf(pdfDefinition)
+
+        print '-'*40, 'Central value fit'
+        fitter.addDataFromTree(tdata, 'data', allProbeCondition, passingProbeCondition)
+        res = fitter.fit('simPdf', 'data')
         effValue = res.floatParsFinal().find('efficiency')
         dataEff = effValue.getVal()
         dataEffErrHi = effValue.getErrorHi()
@@ -96,30 +62,49 @@ def main() :
         scaleFactor = dataEff / mcEff
         maxSf = (dataEff+dataEffErrHi)/mcEffLo
         minSf = (dataEff+dataEffErrLo)/mcEffHi
-
         res.SetName('fitresults')
-        c = fitter.drawFitCanvas('simPdf', 'data')
+        c = fitter.drawFitCanvas(res)
         c.Write()
         h.Write()
         res.Write()
+
+        print '-'*40, 'Fit with alternate MC template'
         resAlt = fitter.fit('simAltPdf', 'data')
         dataAltEff = resAlt.floatParsFinal().find('efficiency').getVal()
         resAlt.SetName('fitresults_systAltTemplate')
         resAlt.Write()
+
+        print '-'*40, 'Fit with tag pt > 30 (vs. 25)'
+        fitter.addDataFromTree(tdata, 'dataTagPt30', allProbeCondition+['tag_tag_pt>30'], passingProbeCondition)
+        resTagPt30 = fitter.fit('simPdf', 'dataTagPt30')
+        dataTagPt30Eff = resTagPt30.floatParsFinal().find('efficiency').getVal()
+        resTagPt30.Write()
+
+        print '-'*40, 'Fit with CMSShape background (vs. Bernstein)'
+        resCMSBkg = fitter.fit('simCMSBkgPdf', 'data')
+        dataCMSBkgEff = resCMSBkg.floatParsFinal().find('efficiency').getVal()
+        resCMSBkg.Write()
+
         fitter.workspace.Write()
         print name, ': Data=%.2f, MC=%.2f, Ratio=%.2f' % (dataEff, mcEff, dataEff/mcEff)
-        print name, ': Alt =%.2f' % (dataAltEff)
         condition = ' && '.join(allProbeCondition+[passingProbeCondition])
         variations = {
-                'CENTRAL'  : scaleFactor,
-                'STAT_UP'  : maxSf,
-                'STAT_DOWN': minSf,
-                'SYST_ALT_TEMPL' : dataAltEff / mcEff,
+                'CENTRAL'  : (scaleFactor, res),
+                'STAT_UP'  : (maxSf, res),
+                'STAT_DOWN': (minSf, res),
+                'SYST_ALT_TEMPL' : (dataAltEff / mcEff, resAlt),
+                'SYST_TAG_PT30' : (dataTagPt30Eff / mcEff, resTagPt30),
+                'SYST_CMSSHAPE' : (dataCMSBkgEff / mcEff, resCMSBkg),
                 }
         cutString = ''
         for varName, value in variations.items() :
-            cutString += '    if ( variation == %s && (%s) ) return %f;\n' % (varName, condition, value)
-        print cutString
+            (value, fitResult) = value
+            cutString += '    if ( variation == Variation::%s && (%s) ) return %f;\n' % (varName, condition, value)
+            print '  Variation {:>15s} : {:.4f}, edm={:f}, status={:s}'.format(varName, value, fitResult.edm(), statusInfo(fitResult))
+            if 'STAT' not in varName and fitResult.statusCodeHistory(0) < 0 :
+                cBad = fitter.drawFitCanvas(fitResult)
+                cBad.Print('badFit_%s_%s.png' %(name, varName))
+
         ROOT.TNamed('cutString', cutString).Write()
         print
         ROOT.gDirectory.cd('..')
