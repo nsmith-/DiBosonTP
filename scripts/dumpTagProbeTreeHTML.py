@@ -94,7 +94,9 @@ enum Variation {
     CENTRAL,
     STAT_UP,
     STAT_DOWN,
-    SYST_ALT_TEMPL
+    SYST_ALT_TEMPL,
+    SYST_TAG_PT30,
+    SYST_CMSSHAPE
 };
 """)
         fout.write("float %s(%s, Variation variation) {\n" % (effName, macroVariables))
@@ -260,7 +262,7 @@ class HTML :
         </tr>
         {tableRows}
     </table>
-    <!-- <img src="{eff2DPtEtaImage}" /><br /> -->
+    <img src="{effName}/scaleFactor_vs_pt.png" /><br />
 </div>'''
 
     effTableRow = '''
