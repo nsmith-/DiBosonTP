@@ -4,6 +4,8 @@ ROOT.gROOT.SetBatch(True)
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 import array
 import sys
+import subprocess
+__gitversion__ = subprocess.check_output(["git", "describe", "--always"]).strip()
 
 #idName = 'ZZLoose'
 #idNameNice = 'ZZ Loose ID'
@@ -116,7 +118,8 @@ for ptbin in xrange(1, npt+1) :
 output += '''   \\end{tabular}
 \\caption{Efficiency table for %s}
 \\end{table}
-''' % idName
+%% Generated with DiBosonTP version %s
+''' % (idName, __gitversion__)
 with open('plots/%s/table.tex'%idName, 'w') as fout :
     fout.write(output)
 
