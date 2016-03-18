@@ -96,7 +96,11 @@ enum Variation {
     STAT_DOWN,
     SYST_ALT_TEMPL,
     SYST_TAG_PT30,
-    SYST_CMSSHAPE
+    SYST_CMSSHAPE,
+    EFF_DATA,
+    EFF_DATA_ERRSYM,
+    EFF_MC,
+    EFF_MC_ERRSYM,
 };
 """)
         fout.write("float %s(%s, Variation variation) {\n" % (effName, macroVariables))
@@ -250,6 +254,8 @@ class HTML :
     effDirItem = '''<div class="effResult">
     <h3>Efficiency results for {effName}</h3><br />
     Function: <a href="{effName}/{effName}.C">{effName}.C</a><br />
+    Latex: <a href="{effName}/table.tex">table.tex</a><br />
+    <div style="text-align: center;"><b>Summary Plot</b><br /><img src="{effName}/scaleFactor_vs_pt.png" /></div>
     <table>
         <tr style="background: #cccccc">
             <td>Bin name</td>
@@ -262,7 +268,6 @@ class HTML :
         </tr>
         {tableRows}
     </table>
-    <img src="{effName}/scaleFactor_vs_pt.png" /><br />
 </div>'''
 
     effTableRow = '''

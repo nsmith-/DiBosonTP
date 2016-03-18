@@ -65,3 +65,58 @@ leg.SetHeader(idNameNice)
 
 canvas.Print('plots/%s/scaleFactor_vs_pt.png'%idName)
 canvas.Print('plots/%s/scaleFactor_vs_pt.root'%idName)
+
+# ------- Latex
+def formatValue(var, varerr, etabin, ptbin) :
+    eta = etabins[etabin-1]+.001
+    pt = ptbins[ptbin-1]+.001
+    value = eff(pt, eta, var)
+    if var is ROOT.CENTRAL :
+        return '$%1.4f^{+%1.4f}_{-%1.4f}$' % (value, effMax(pt,eta), effMin(pt,eta))
+    else :
+        err = eff(ptbins[ptbin-1]+.001, etabins[etabin-1]+.001, varerr)
+        return '$%1.4f \\pm %1.4f$' % (value, err)
+
+output = ''
+
+neta = len(etabins)-1
+output += '''\\begin{table}[htbp]
+\\centering
+\\begin{tabular}{%s}
+\hline
+''' % 'c'.join(['|']*(neta+3))
+
+etaLabels = ['$p_T$', '-']
+for etabin in xrange(1, neta+1) :
+    etalo = etabins[etabin-1]
+    etahi = etabins[etabin]
+    etaLabels.append('$%1.1f < |\\eta| < %1.1f$' % (etalo, etahi))
+
+output += '        ' + ' & '.join(etaLabels) + '\\\\ \hline\n'
+
+npt = len(ptbins)-1
+for ptbin in xrange(1, npt+1) :
+    ptlo = ptbins[ptbin-1]
+    pthi = ptbins[ptbin]
+    ptLabel = '$%3.0f - %3.0f$' % (ptlo, pthi)
+
+    output += '      \\multirow{3}{*}{%s} \n' % ptLabel
+
+    dataLine, mcLine, ratioLine = [['', name] for name in ['Data', 'MC', 'Ratio']]
+    for etabin in xrange(1, neta+1) :
+        dataLine.append(formatValue(ROOT.EFF_DATA, ROOT.EFF_DATA_ERRSYM, etabin, ptbin))
+        mcLine.append(formatValue(ROOT.EFF_MC, ROOT.EFF_MC_ERRSYM, etabin, ptbin))
+        ratioLine.append(formatValue(ROOT.CENTRAL, None, etabin, ptbin))
+
+
+    output += '        %s \\\\ \n' % ' & '.join(dataLine)
+    output += '        %s \\\\ \n' % ' & '.join(mcLine)
+    output += '        %s \\\\ \\hline\n' % ' & '.join(ratioLine)
+
+output += '''   \\end{tabular}
+\\caption{Efficiency table for %s}
+\\end{table}
+''' % idName
+with open('plots/%s/table.tex'%idName, 'w') as fout :
+    fout.write(output)
+

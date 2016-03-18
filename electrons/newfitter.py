@@ -95,13 +95,17 @@ def main() :
                 'SYST_ALT_TEMPL' : (dataAltEff / mcEff, resAlt),
                 'SYST_TAG_PT30' : (dataTagPt30Eff / mcEff, resTagPt30),
                 'SYST_CMSSHAPE' : (dataCMSBkgEff / mcEff, resCMSBkg),
+                'EFF_DATA' : (dataEff, res),
+                'EFF_DATA_ERRSYM' : ((dataEffErrHi-dataEffErrLo)/2, res),
+                'EFF_MC' : (mcEff, res),
+                'EFF_MC_ERRSYM' : ((mcEffHi-mcEffLo)/2, res),
                 }
         cutString = ''
         for varName, value in variations.items() :
             (value, fitResult) = value
             cutString += '    if ( variation == Variation::%s && (%s) ) return %f;\n' % (varName, condition, value)
             print '  Variation {:>15s} : {:.4f}, edm={:f}, status={:s}'.format(varName, value, fitResult.edm(), statusInfo(fitResult))
-            if 'STAT' not in varName and fitResult.statusCodeHistory(0) < 0 :
+            if 'STAT' not in varName and 'EFF' not in varName and fitResult.statusCodeHistory(0) < 0 :
                 cBad = fitter.drawFitCanvas(fitResult)
                 cBad.Print('badFit_%s_%s.png' %(name, varName))
 

@@ -95,6 +95,10 @@ def main() :
                 'SYST_ALT_TEMPL' : (dataAltEff / mcEff, resAlt),
                 'SYST_TAG_PT30' : (dataTagPt30Eff / mcEff, resTagPt30),
                 'SYST_CMSSHAPE' : (dataCMSBkgEff / mcEff, resCMSBkg),
+                'EFF_DATA' : (dataEff, res),
+                'EFF_DATA_ERRSYM' : ((dataEffErrHi-dataEffErrLo)/2, res),
+                'EFF_MC' : (mcEff, res),
+                'EFF_MC_ERRSYM' : ((mcEffHi-mcEffLo)/2, res),
                 }
         cutString = ''
         for varName, value in variations.items() :
