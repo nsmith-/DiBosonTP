@@ -30,13 +30,13 @@ class stupidTightMuonProducer : public edm::EDProducer {
       virtual void produce(edm::Event&, const edm::EventSetup&) override;
       virtual void endJob() override;
 
-      edm::InputTag srcTag_;
-      edm::InputTag vtxTag_;
+      edm::EDGetTokenT<pat::MuonCollection> srcTag_;
+      edm::EDGetTokenT<reco::VertexCollection> vtxTag_;
 };
 
 stupidTightMuonProducer::stupidTightMuonProducer(const edm::ParameterSet& iConfig) :
-  srcTag_(iConfig.getParameter<edm::InputTag>("src")),
-  vtxTag_(iConfig.getParameter<edm::InputTag>("vtx"))
+  srcTag_(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("src"))),
+  vtxTag_(consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtx")))
 {
    produces<pat::MuonCollection>();
 
@@ -53,10 +53,10 @@ stupidTightMuonProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSet
    using namespace edm;
 
    Handle<pat::MuonCollection> muons;
-   iEvent.getByLabel(srcTag_, muons);
+   iEvent.getByToken(srcTag_, muons);
 
    Handle<reco::VertexCollection> vtx;
-   iEvent.getByLabel(vtxTag_, vtx);
+   iEvent.getByToken(vtxTag_, vtx);
    const auto& pv = vtx->at(0);
 
    std::unique_ptr<pat::MuonCollection> tightMuons{new pat::MuonCollection};

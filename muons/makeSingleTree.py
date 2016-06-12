@@ -29,7 +29,7 @@ inputFilesData = [
 
 # file dataset=/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15MiniAODv2-74X_mcRun2_asymptotic_v2-v1/MINIAODSIM
 inputFilesMC = [
-    '/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/50000/02CD8A95-736F-E511-B76E-00266CFFBF34.root',
+    '/store/mc/RunIISpring16MiniAODv2/DYToLL_M_1_TuneCUETP8M1_13TeV_pythia8/MINIAODSIM/FlatPU8to42RAWAODSIM_80X_mcRun2_asymptotic_2016_miniAODv2_v0_ext1-v1/50000/12F4768A-F623-E611-966A-003048FFD72C.root',
 ]
 
 if len(options.inputFiles) is 0 :
