@@ -73,6 +73,9 @@ pairMCInfoEmbedder::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        auto mcVector = leg1->p4() + leg2->p4();
        motherEmbedded.addUserFloat("mc_mass", mcVector.mass());
        motherEmbedded.addUserFloat("mc_pt", mcVector.pt());
+     } else {
+       motherEmbedded.addUserFloat("mc_mass", 0.);
+       motherEmbedded.addUserFloat("mc_pt", 0.);
      }
      pairsEmbedded->push_back(motherEmbedded);
    }
