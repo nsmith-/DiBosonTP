@@ -294,7 +294,7 @@ def setPalette() :
         with open(fileName) as palette :
             for i, line in enumerate(palette) :
                 (r,g,b) = map(float, line.strip().split(','))
-                c = ROOT.TColor(1000+i,r,g,b)
+                c = ROOT.TColor(r,g,b)
                 ROOT.SetOwnership(c, False)
                 yield c.GetNumber()
 
