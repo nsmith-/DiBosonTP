@@ -101,6 +101,12 @@ enum Variation {
     EFF_DATA_ERRSYM,
     EFF_MC,
     EFF_MC_ERRSYM,
+    EFF_CUTCOUNT,
+    EFF_CUTCOUNT_UP,
+    EFF_CUTCOUNT_DOWN,
+    EFF_FIT,
+    EFF_FIT_UP,
+    EFF_FIT_DOWN,
 };
 """)
         fout.write("float %s(%s, Variation variation) {\n" % (effName, macroVariables))

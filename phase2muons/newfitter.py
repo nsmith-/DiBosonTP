@@ -61,7 +61,7 @@ def main() :
 
         fitter.workspace.Write()
         print name, ': Data=%.2f, MC=%.2f, Ratio=%.2f' % (dataEff, mcEff, dataEff/mcEff)
-        condition = ' && '.join(allProbeCondition+[passingProbeCondition])
+        condition = ' && '.join(allProbeCondition)
         variations = {
                 'EFF_CUTCOUNT' : (mcEff, res),
                 'EFF_CUTCOUNT_UP' : (mcEffHi, res),
@@ -113,8 +113,8 @@ def main() :
 
     fit('WZLoose', [], 'passingIDWZLoose', binning, commonVars)
     fit('Tight', [], 'passingTightID', binning, commonVars)
-    fit('RelIso0p4', ['passingIDWZLoose'], 'passingIsoWZLoose', binning, commonVars)
-    fit('RelIso0p12', ['passingTightID'], 'passingIsoWZTight', binning, commonVars)
+    fit('RelIso0p4', ['passingTightID'], 'passingIsoWZLoose', binning, commonVars+['bool passingTightID'])
+    fit('RelIso0p12', ['passingTightID'], 'passingIsoWZTight', binning, commonVars+['bool passingTightID'])
 
 if __name__ == '__main__' :
     main()
